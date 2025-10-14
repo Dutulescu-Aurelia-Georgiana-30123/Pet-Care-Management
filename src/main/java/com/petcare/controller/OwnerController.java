@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/owners")
-@CrossOrigin(origins = "*") // pentru dezvoltare; schimbă la producție
+@CrossOrigin(origins = "*")
 public class OwnerController {
 
     private final OwnerRepository ownerRepository;
