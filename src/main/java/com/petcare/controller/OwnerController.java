@@ -1,5 +1,6 @@
 package com.petcare.controller;
 
+import com.petcare.dto.OwnerDTO;
 import com.petcare.model.Owner;
 import com.petcare.repository.OwnerRepository;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +21,18 @@ public class OwnerController {
     }
 
     @GetMapping
-    public List<Owner> getAll() {
-        return ownerRepository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Owner> getOne(@PathVariable Long id) {
-        Optional<Owner> o = ownerRepository.findById(id);
-        return o.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public List<OwnerDTO> getAllOwners() {
+        return ownerRepository.findAll().stream()
+                .map(owner -> new OwnerDTO(
+                        owner.getId(),
+                        owner.getName(),
+                        owner.getPhone(),
+                        owner.getEmail(),
+                        owner.getPets().stream()
+                                .map(p -> p.getName())
+                                .toList()
+                ))
+                .toList();
     }
 
     @PostMapping
