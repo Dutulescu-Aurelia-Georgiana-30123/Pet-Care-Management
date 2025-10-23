@@ -90,6 +90,20 @@ public class AppointmentController {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
     }
 
+    // ✅ Custom query - toate programările pentru un anumit owner
+    @GetMapping("/owner/{ownerId}")
+    public List<AppointmentDTO> getAppointmentsByOwner(@PathVariable Long ownerId) {
+        return appointmentRepository.findByPetOwnerId(ownerId).stream()
+                .map(a -> new AppointmentDTO(
+                        a.getId(),
+                        a.getDateTime(),
+                        a.getDescription(),
+                        a.getOwner() != null ? a.getOwner().getName() : null,
+                        a.getPet() != null ? a.getPet().getName() : null
+                ))
+                .collect(Collectors.toList());
+    }
+
 
 
 }

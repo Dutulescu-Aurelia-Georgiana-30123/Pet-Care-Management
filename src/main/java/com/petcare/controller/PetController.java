@@ -87,6 +87,16 @@ public class PetController {
         return "Pet with ID " + id + " deleted successfully.";
     }
 
+    // 🔍 Custom Query - toate animalele unui anumit proprietar
+    @GetMapping("/owner/{ownerId}")
+    public List<PetDTO> getPetsByOwnerId(@PathVariable Long ownerId) {
+        List<Pet> pets = petRepository.findByOwnerId(ownerId);
+        return pets.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
     // 🔄 Conversie Pet → PetDTO (metodă auxiliară)
     private PetDTO convertToDTO(Pet pet) {
         return new PetDTO(
