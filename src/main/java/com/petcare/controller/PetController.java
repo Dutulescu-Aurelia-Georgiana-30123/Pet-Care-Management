@@ -6,7 +6,9 @@ import com.petcare.repository.PetRepository;
 import com.petcare.repository.OwnerRepository;
 import com.petcare.dto.PetDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +42,7 @@ public class PetController {
 
     // ✅ POST - adaugă un animal nou
     @PostMapping
-    public PetDTO createPet(@RequestBody Pet pet) {
+    public PetDTO createPet(@Valid @RequestBody Pet pet) {
         // Salvează pet-ul
         Pet savedPet = petRepository.save(pet);
 
@@ -60,7 +62,7 @@ public class PetController {
 
     // ✅ PUT - actualizează un animal existent
     @PutMapping("/{id}")
-    public PetDTO updatePet(@PathVariable Long id, @RequestBody Pet petDetails) {
+    public PetDTO updatePet(@PathVariable Long id, @Valid @RequestBody Pet petDetails) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pet not found with id: " + id));
 

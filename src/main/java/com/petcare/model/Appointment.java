@@ -1,6 +1,9 @@
 package com.petcare.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,15 +14,20 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Data și ora programării sunt obligatorii.")
+    @FutureOrPresent(message = "Programarea nu poate fi în trecut.")
     private LocalDateTime dateTime;
+    @NotBlank(message = "Descrierea este obligatorie.")
     private String description;
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
+    @NotNull(message = "Trebuie să alegi un proprietar pentru programare.")
     private Owner owner;
 
     @ManyToOne
     @JoinColumn(name = "pet_id")
+    @NotNull(message = "Trebuie să alegi un animal pentru programare.")
     private Pet pet;
 
     public Appointment() {}

@@ -1,6 +1,8 @@
 package com.petcare.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
@@ -13,13 +15,17 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Pet name is required")
     private String name;
+
+    @NotBlank(message = "Species is required")
     private String species;
     private String breed;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     @JsonBackReference
+    @NotNull(message = "Owner must be provided")
     private Owner owner;
 
     // optional: appointments or medical records (le adăugăm ulterior)
