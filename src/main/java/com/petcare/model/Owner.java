@@ -1,19 +1,37 @@
 package com.petcare.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "owners")
+@Table(
+        name = "owners",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "email") // email trebuie să fie unic
+        }
+)
 public class Owner {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Numele este obligatoriu.")
+    @Size(min = 2, max = 50, message = "Numele trebuie să aibă între 2 și 50 de caractere.")
     private String name;
+
+    @NotBlank(message = "Numărul de telefon este obligatoriu.")
+    @Pattern(regexp = "^(\\+4)?07\\d{8}$", message = "Numărul de telefon trebuie să fie valid (ex: 07xxxxxxxx).")
     private String phone;
+
+    @NotBlank(message = "Emailul este obligatoriu.")
+    @Email(message = "Adresa de email nu este validă.")
     private String email;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -28,7 +46,7 @@ public class Owner {
         this.email = email;
     }
 
-    // getters & setters
+    // --- Getteri și setteri ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

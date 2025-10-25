@@ -3,8 +3,10 @@ package com.petcare.controller;
 import com.petcare.dto.OwnerDTO;
 import com.petcare.model.Owner;
 import com.petcare.repository.OwnerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,20 +37,31 @@ public class OwnerController {
                 .toList();
     }
 
+    // POST - creare owner cu validare
     @PostMapping
-    public Owner create(@RequestBody Owner owner) {
-        // dacă owner.pets are elemente, cascade se va ocupa
-        return ownerRepository.save(owner);
+    public ResponseEntity<?> createOwner(@Valid @RequestBody Owner owner) {
+        if (ownerRepository.findByEmail(owner.getEmail()).isPresent()) {
+            return ResponseEntity.status(409).body("Email already exists");
+        }
+        Owner saved = ownerRepository.save(owner);
+        return ResponseEntity.ok(saved);
     }
 
+    // PUT - actualizare owner cu validare
     @PutMapping("/{id}")
-    public ResponseEntity<Owner> update(@PathVariable Long id, @RequestBody Owner ownerData) {
+    public ResponseEntity<?> updateOwner(@PathVariable Long id, @Valid @RequestBody Owner ownerDetails) {
         return ownerRepository.findById(id).map(owner -> {
-            owner.setName(ownerData.getName());
-            owner.setPhone(ownerData.getPhone());
-            owner.setEmail(ownerData.getEmail());
-            Owner saved = ownerRepository.save(owner);
-            return ResponseEntity.ok(saved);
+            // verifică dacă email-ul se schimbă și dacă cel nou este deja folosit de alt owner
+            if (ownerDetails.getEmail() != null && !ownerDetails.getEmail().equals(owner.getEmail())) {
+                if (ownerRepository.findByEmail(ownerDetails.getEmail()).isPresent()) {
+                    return ResponseEntity.status(409).body("Email already exists");
+                }
+            }
+            owner.setName(ownerDetails.getName());
+            owner.setPhone(ownerDetails.getPhone());
+            owner.setEmail(ownerDetails.getEmail());
+            ownerRepository.save(owner);
+            return ResponseEntity.ok(owner);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
