@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import com.petcare.exception.ValidationException;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -43,11 +45,14 @@ public class PetController {
     // ✅ POST - adaugă un animal nou
     @PostMapping
     public PetDTO createPet(@Valid @RequestBody Pet pet) {
+        if (pet.getOwner() == null || pet.getOwner().getId() == null) {
+            throw new ValidationException("Owner must be specified for the pet.");
+        }
         // Salvează pet-ul
         Pet savedPet = petRepository.save(pet);
 
         // Încarcă explicit owner-ul complet din baza de date
-        Owner owner = ownerRepository.findById(pet.getOwner().getId()).orElse(null);
+        Owner owner = ownerRepository.findById(pet.getOwner().getId()).orElseThrow(() -> new ValidationException("Owner not found for ID: " + pet.getOwner().getId()));
         savedPet.setOwner(owner);
 
         // Transformă în DTO

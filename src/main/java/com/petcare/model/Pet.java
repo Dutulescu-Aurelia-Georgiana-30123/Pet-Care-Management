@@ -20,7 +20,9 @@ public class Pet {
 
     @NotBlank(message = "Species is required")
     private String species;
+    @NotBlank(message = "Breed is required")
     private String breed;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")

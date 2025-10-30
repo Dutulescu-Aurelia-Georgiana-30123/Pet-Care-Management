@@ -14,20 +14,20 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Data și ora programării sunt obligatorii.")
-    @FutureOrPresent(message = "Programarea nu poate fi în trecut.")
+    @NotNull(message = "Appointment date and time is required.")
     private LocalDateTime dateTime;
-    @NotBlank(message = "Descrierea este obligatorie.")
+
+    @NotBlank(message = "Appointment description is required.")
     private String description;
 
+    @NotNull(message = "Owner is required.")
     @ManyToOne
-    @JoinColumn(name = "owner_id")
-    @NotNull(message = "Trebuie să alegi un proprietar pentru programare.")
+    @JoinColumn(name = "owner_id", nullable = false)
     private Owner owner;
 
+    @NotNull(message = "Pet is required.")
     @ManyToOne
-    @JoinColumn(name = "pet_id")
-    @NotNull(message = "Trebuie să alegi un animal pentru programare.")
+    @JoinColumn(name = "pet_id", nullable = false)
     private Pet pet;
 
     public Appointment() {}
