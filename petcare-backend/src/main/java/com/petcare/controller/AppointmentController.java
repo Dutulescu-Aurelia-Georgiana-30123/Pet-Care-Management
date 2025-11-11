@@ -14,8 +14,10 @@ import com.petcare.exception.ValidationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @RestController
 @RequestMapping("/api/appointments")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AppointmentController {
 
     @Autowired
