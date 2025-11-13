@@ -1,28 +1,25 @@
 import { useEffect, useState } from 'react';
 import OwnersService from '../services/owners';
+import { toast } from '../components/Toast.jsx';
 
 export default function Owners() {
   const [owners, setOwners] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
 
-  useEffect(() => {
-    loadOwners();
-  }, []);
+  useEffect(() => { loadOwners(); }, []);
 
   async function loadOwners() {
     setLoading(true);
-    setError('');
     try {
       const data = await OwnersService.list();
       setOwners(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
-      setError('Nu am putut încărca owners. Verifică conexiunea la backend.');
+      toast('Nu am putut încărca owners. Verifică backend-ul.', 'error');
     } finally {
       setLoading(false);
     }
@@ -32,8 +29,6 @@ export default function Owners() {
     setForm({ name: '', phone: '', email: '' });
     setEditingId(null);
     setShowForm(false);
-    setError('');
-    setSuccess('');
   }
 
   function startEdit(owner) {
@@ -44,50 +39,58 @@ export default function Owners() {
     });
     setEditingId(owner.id);
     setShowForm(true);
-    setError('');
-    setSuccess('');
+  }
+
+  function validate() {
+    if (!form.name.trim()) return 'Numele este obligatoriu.';
+    // telefon 07xxxxxxxx (opțional +4)
+    const telOk = /^(\+4)?07\d{8}$/.test(form.phone.trim());
+    if (!telOk) return 'Telefon invalid. Format: 07xxxxxxxx (opțional +4 în față).';
+    // validare email simplă
+    const emailOk = /^\S+@\S+\.\S+$/.test(form.email.trim());
+    if (!emailOk) return 'Email invalid.';
+    return '';
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
+    const v = validate();
+    if (v) { toast(v, 'error'); return; }
 
+    setLoading(true);
     try {
       if (editingId) {
         await OwnersService.update(editingId, form);
-        setSuccess('Owner actualizat cu succes!');
+        toast('Owner actualizat cu succes!', 'success');
       } else {
         await OwnersService.create(form);
-        setSuccess('Owner creat cu succes!');
+        toast('Owner creat cu succes!', 'success');
       }
       resetForm();
-      loadOwners();
+      await loadOwners();
     } catch (e) {
       console.error(e);
-      const errorMsg = e?.response?.data?.error || 
-                      (typeof e?.response?.data === 'string' ? e.response.data : null) ||
-                      Object.values(e?.response?.data || {}).join(', ') ||
-                      'Eroare la salvare. Verifică datele introduse.';
-      setError(errorMsg);
+      const msg =
+        e?.response?.data?.error ||
+        (typeof e?.response?.data === 'string' ? e.response.data : null) ||
+        (e?.response?.data && Object.values(e.response.data).join(', ')) ||
+        'Eroare la salvare. Verifică datele.';
+      toast(msg, 'error');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Ești sigur că vrei să ștergi acest owner?')) return;
-    
+    if (!window.confirm('Ștergi acest owner?')) return;
     setLoading(true);
-    setError('');
     try {
       await OwnersService.remove(id);
-      setSuccess('Owner șters cu succes!');
-      loadOwners();
+      toast('Owner șters cu succes!', 'success');
+      await loadOwners();
     } catch (e) {
       console.error(e);
-      setError('Nu am putut șterge owner-ul.');
+      toast('Nu am putut șterge owner-ul.', 'error');
     } finally {
       setLoading(false);
     }
@@ -97,17 +100,14 @@ export default function Owners() {
     <div className="owners-page">
       <div className="page-header">
         <h2>👤 Owners</h2>
-        <button 
-          className="btn btn-primary" 
+        <button
+          className="btn btn-primary"
           onClick={() => { resetForm(); setShowForm(true); }}
           disabled={loading}
         >
           + Adaugă Owner
         </button>
       </div>
-
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
 
       {showForm && (
         <div className="card form-card">
@@ -151,7 +151,7 @@ export default function Owners() {
               <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? 'Salvare...' : (editingId ? 'Actualizează' : 'Creează')}
               </button>
-              <button type="button" className="btn btn-secondary" onClick={resetForm}>
+              <button type="button" className="btn btn-secondary" onClick={resetForm} disabled={loading}>
                 Anulează
               </button>
             </div>
@@ -175,22 +175,22 @@ export default function Owners() {
                 <h3>{owner.name}</h3>
                 <p className="owner-email">📧 {owner.email}</p>
                 <p className="owner-phone">📱 {owner.phone}</p>
-                {owner.petNames && owner.petNames.length > 0 && (
+                {owner.petNames?.length > 0 && (
                   <div className="owner-pets">
                     <strong>Pets:</strong> {owner.petNames.join(', ')}
                   </div>
                 )}
               </div>
               <div className="owner-actions">
-                <button 
-                  className="btn btn-sm btn-secondary" 
+                <button
+                  className="btn btn-sm btn-secondary"
                   onClick={() => startEdit(owner)}
                   disabled={loading}
                 >
                   Editează
                 </button>
-                <button 
-                  className="btn btn-sm btn-danger" 
+                <button
+                  className="btn btn-sm btn-danger"
                   onClick={() => handleDelete(owner.id)}
                   disabled={loading}
                 >

@@ -1,293 +1,248 @@
-import { useEffect, useState } from 'react';
-import PetsService from '../services/pets';
-import OwnersService from '../services/owners';
+import { useEffect, useMemo, useState } from 'react';
+import PetsApi from '../services/pets.js';
+import OwnersApi from '../services/owners.js';
+import { toast } from '../components/Toast.jsx'; // doar funcția, fără ToastContainer aici
 
-export default function Pets() {
-  const [pets, setPets] = useState([]);
-  const [owners, setOwners] = useState([]);
+export default function PetsPage() {
+  // data
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+
+  // owners pentru dropdown
+  const [owners, setOwners] = useState([]);
+
+  // filtre
+  const [filters, setFilters] = useState({ ownerId: '', species: '', q: '' });
+
+  // form add/edit
   const [form, setForm] = useState({ name: '', species: '', breed: '', ownerId: '' });
-  const [filters, setFilters] = useState({ ownerId: '', species: '' });
+  const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    loadOwners();
-    loadPets();
-  }, []);
+  // map pt. afișare nume owner după id
+  const ownersMap = useMemo(() => {
+    const m = new Map();
+    owners.forEach(o => m.set(String(o.id), o.name));
+    return m;
+  }, [owners]);
 
+  // helpers
+  const normalize = (v) => (v === '' ? undefined : v);
+
+  function validate(p) {
+    if (!p.name?.trim()) return 'Numele este obligatoriu.';
+    if (!p.ownerId) return 'Owner-ul este obligatoriu.';
+    return '';
+  }
+
+  // loads
   async function loadOwners() {
     try {
-      const data = await OwnersService.list();
+      const data = await OwnersApi.list();
       setOwners(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error('Error loading owners:', e);
-    }
-  }
-
-  async function loadPets() {
-    setLoading(true);
-    setError('');
-    try {
-      let data;
-      if (filters.ownerId) {
-        data = await PetsService.byOwner(Number(filters.ownerId));
-      } else {
-        data = await PetsService.list();
-      }
-      
-      let filtered = Array.isArray(data) ? data : [];
-      
-      if (filters.species) {
-        filtered = filtered.filter(p => 
-          p.species?.toLowerCase().includes(filters.species.toLowerCase())
-        );
-      }
-      
-      setPets(filtered);
-    } catch (e) {
       console.error(e);
-      setError('Nu am putut încărca pets. Verifică conexiunea la backend.');
-    } finally {
-      setLoading(false);
+      toast('Nu am putut încărca lista de owners', 'error');
     }
   }
 
-  useEffect(() => {
-    loadPets();
-  }, [filters.ownerId, filters.species]);
-
-  function resetForm() {
-    setForm({ name: '', species: '', breed: '', ownerId: '' });
-    setEditingId(null);
-    setShowForm(false);
-    setError('');
-    setSuccess('');
-  }
-
-  function startEdit(pet) {
-    // Find owner by name
-    const owner = owners.find(o => o.name === pet.ownerName);
-    const ownerId = owner ? owner.id.toString() : '';
-    
-    setForm({
-      name: pet.name || '',
-      species: pet.species || '',
-      breed: pet.breed || '',
-      ownerId: ownerId,
-    });
-    setEditingId(pet.id);
-    setShowForm(true);
-    setError('');
-    setSuccess('');
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+  async function fetchAll() {
     setLoading(true);
-
     try {
-      const petData = {
-        name: form.name,
-        species: form.species,
-        breed: form.breed,
-        owner: { id: Number(form.ownerId) }
+      const params = {
+        ownerId: normalize(filters.ownerId),
+        species: normalize(filters.species),
+        q: normalize(filters.q),
       };
-
-      if (editingId) {
-        await PetsService.update(editingId, petData);
-        setSuccess('Pet actualizat cu succes!');
-      } else {
-        await PetsService.create(petData);
-        setSuccess('Pet creat cu succes!');
-      }
-      resetForm();
-      loadPets();
+      const data = await PetsApi.list(params);
+      setRows(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
-      const errorMsg = e?.response?.data?.error || 
-                      (typeof e?.response?.data === 'string' ? e.response.data : null) ||
-                      Object.values(e?.response?.data || {}).join(', ') ||
-                      'Eroare la salvare. Verifică datele introduse.';
-      setError(errorMsg);
+      toast('Nu am putut încărca pets', 'error');
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Ești sigur că vrei să ștergi acest pet?')) return;
-    
+  useEffect(() => { loadOwners(); fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, [filters.ownerId, filters.species, filters.q]);
+
+  // actions
+  async function submitPet(e) {
+    e.preventDefault();
+
+    const payload = {
+      name: form.name.trim(),
+      species: normalize(form.species),
+      breed: normalize(form.breed),
+      owner: { id: Number(form.ownerId) },
+    };
+    const err = validate({ ...payload, ownerId: form.ownerId });
+    if (err) { toast(err, 'error'); return; }
+
     setLoading(true);
-    setError('');
     try {
-      await PetsService.remove(id);
-      setSuccess('Pet șters cu succes!');
-      loadPets();
+      if (editingId) {
+        await PetsApi.update(editingId, payload);
+        toast('Pet actualizat', 'success');
+      } else {
+        await PetsApi.create(payload);
+        toast('Pet creat', 'success');
+      }
+      setForm({ name: '', species: '', breed: '', ownerId: '' });
+      setEditingId(null);
+      await fetchAll();
     } catch (e) {
       console.error(e);
-      setError('Nu am putut șterge pet-ul.');
+      toast('Operațiunea a eșuat', 'error');
     } finally {
       setLoading(false);
     }
   }
 
-  function clearFilters() {
-    setFilters({ ownerId: '', species: '' });
+  async function onDelete(id) {
+    if (!confirm('Ștergi acest pet?')) return;
+    setLoading(true);
+    try {
+      await PetsApi.remove(id);
+      toast('Pet șters', 'success');
+      await fetchAll();
+    } catch (e) {
+      console.error(e);
+      toast('Ștergerea a eșuat', 'error');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  return (
-    <div className="pets-page">
-      <div className="page-header">
-        <h2>🐶 Pets</h2>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => { resetForm(); setShowForm(true); }}
-          disabled={loading}
-        >
-          + Adaugă Pet
-        </button>
+  function startEdit(p) {
+    setForm({
+      name: p.name || '',
+      species: p.species || '',
+      breed: p.breed || '',
+      ownerId: p.ownerId ? String(p.ownerId) : '',
+    });
+    setEditingId(p.id);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm({ name: '', species: '', breed: '', ownerId: '' });
+  }
+
+  // render
+return (
+  <section>
+    <h2>🐶 Pets</h2>
+
+    {/* Filtre */}
+    <div className="card filters-card">
+      <div className="filters-grid">
+        <div className="form-group">
+          <label>Owner</label>
+          <select
+            value={filters.ownerId}
+            onChange={e=>setFilters({...filters, ownerId: e.target.value})}
+          >
+            <option value="">Toți owners</option>
+            {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Species</label>
+          <input
+            value={filters.species}
+            onChange={e=>setFilters({...filters, species:e.target.value})}
+            placeholder="dog, cat, etc."
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Search</label>
+          <input
+            value={filters.q}
+            onChange={e=>setFilters({...filters, q:e.target.value})}
+            placeholder="name/breed"
+          />
+        </div>
+
+        <div className="form-group">
+          <button className="btn btn-primary" onClick={fetchAll}>Aplică filtre</button>
+          <button className="btn btn-secondary" onClick={()=>{ setFilters({ ownerId:'', species:'', q:'' }); fetchAll(); }}>
+            Șterge filtre
+          </button>
+        </div>
       </div>
+    </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+    {/* Form Add/Edit */}
+    <div className="card form-card">
+      <h3>{editingId ? 'Editează pet' : 'Adaugă pet'}</h3>
+      <form onSubmit={submitPet}>
+        <div className="form-group" style={{maxWidth:360}}>
+          <label>Name</label>
+          <input required value={form.name} onChange={e=>setForm({...form, name:e.target.value})}/>
+        </div>
 
-      {/* Filtre */}
-      <div className="card filters-card">
-        <h3>Filtre</h3>
-        <div className="filters-grid">
-          <div className="form-group">
-            <label>Owner</label>
-            <select
-              value={filters.ownerId}
-              onChange={(e) => setFilters({ ...filters, ownerId: e.target.value })}
-            >
-              <option value="">Toți owners</option>
-              {owners.map(owner => (
-                <option key={owner.id} value={owner.id}>{owner.name}</option>
-              ))}
-            </select>
-          </div>
+        <div className="form-row">
           <div className="form-group">
             <label>Species</label>
-            <input
-              type="text"
-              value={filters.species}
-              onChange={(e) => setFilters({ ...filters, species: e.target.value })}
-              placeholder="dog, cat, etc."
-            />
+            <input value={form.species} onChange={e=>setForm({...form, species:e.target.value})}/>
           </div>
           <div className="form-group">
-            <button type="button" className="btn btn-secondary" onClick={clearFilters}>
-              Șterge Filtre
-            </button>
+            <label>Breed</label>
+            <input value={form.breed} onChange={e=>setForm({...form, breed:e.target.value})}/>
+          </div>
+          <div className="form-group">
+            <label>Owner</label>
+            <select required value={form.ownerId} onChange={e=>setForm({...form, ownerId:e.target.value})}>
+              <option value="">— alege owner —</option>
+              {owners.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
           </div>
         </div>
-      </div>
 
-      {showForm && (
-        <div className="card form-card">
-          <h3>{editingId ? 'Editează Pet' : 'Adaugă Pet Nou'}</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Nume *</label>
-              <input
-                type="text"
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Nume pet"
-              />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Species *</label>
-                <input
-                  type="text"
-                  required
-                  value={form.species}
-                  onChange={(e) => setForm({ ...form, species: e.target.value })}
-                  placeholder="dog, cat, etc."
-                />
-              </div>
-              <div className="form-group">
-                <label>Breed *</label>
-                <input
-                  type="text"
-                  required
-                  value={form.breed}
-                  onChange={(e) => setForm({ ...form, breed: e.target.value })}
-                  placeholder="Rasa"
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Owner *</label>
-              <select
-                required
-                value={form.ownerId}
-                onChange={(e) => setForm({ ...form, ownerId: e.target.value })}
-              >
-                <option value="">Selectează owner</option>
-                {owners.map(owner => (
-                  <option key={owner.id} value={owner.id}>{owner.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Salvare...' : (editingId ? 'Actualizează' : 'Creează')}
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={resetForm}>
-                Anulează
-              </button>
-            </div>
-          </form>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary">
+            {editingId ? 'Save changes' : 'Create'}
+          </button>
+          {editingId && (
+            <button type="button" className="btn btn-secondary" onClick={cancelEdit}>
+              Cancel
+            </button>
+          )}
         </div>
-      )}
+      </form>
+    </div>
 
-      {loading && !showForm && <div className="loading">Se încarcă...</div>}
-
-      {!loading && pets.length === 0 && !showForm && (
-        <div className="empty-state">
-          <p>Nu există pets încă. Adaugă primul pet!</p>
+    {/* Listă */}
+    {loading ? (
+      <div className="loading">Loading…</div>
+    ) : rows.length ? (
+      <>
+        <div className="card" style={{marginBottom:0}}>
+          <span className="owner-phone">{rows.length} pet{rows.length === 1 ? '' : 's'} găsit(e)</span>
         </div>
-      )}
-
-      {!loading && pets.length > 0 && (
         <div className="pets-grid">
-          {pets.map((pet) => (
-            <div key={pet.id} className="card pet-card">
+          {rows.map(p => (
+            <div key={p.id} className="card pet-card">
               <div className="pet-info">
-                <h3>{pet.name}</h3>
-                <p className="pet-species">🐾 {pet.species || '—'}</p>
-                <p className="pet-breed">Breed: {pet.breed || '—'}</p>
-                <p className="pet-owner">Owner: {pet.ownerName || '—'}</p>
+                <h3>{p.name}</h3>
+                <div className="pet-species">{p.species || '—'}</div>
+                {p.breed && <div className="pet-breed">Breed: {p.breed}</div>}
+                <div className="pet-owner">Owner: {p.ownerName || ownersMap.get(String(p.ownerId)) || '—'}</div>
               </div>
               <div className="pet-actions">
-                <button 
-                  className="btn btn-sm btn-secondary" 
-                  onClick={() => startEdit(pet)}
-                  disabled={loading}
-                >
-                  Editează
-                </button>
-                <button 
-                  className="btn btn-sm btn-danger" 
-                  onClick={() => handleDelete(pet.id)}
-                  disabled={loading}
-                >
-                  Șterge
-                </button>
+                <button className="btn btn-secondary" onClick={()=>startEdit(p)}>Editează</button>
+                <button className="btn btn-danger" onClick={()=>onDelete(p.id)}>Șterge</button>
               </div>
             </div>
           ))}
         </div>
-      )}
-    </div>
-  );
+      </>
+    ) : (
+      <div className="empty-state"><p>Nu există rezultate pentru filtrele curente.</p></div>
+    )}
+  </section>
+);
 }
