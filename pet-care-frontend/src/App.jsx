@@ -1,19 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import Owners from "./pages/Owners";
-import Pets from "./pages/Pets";
-import Appointments from "./pages/Appointments";
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Home from './pages/Home';
+import Owners from './pages/Owners';
+import Pets from './pages/Pets';
+import Appointments from './pages/Appointments';
+import ToastContainer from './components/Toast'; // <- DEFAULT import (fără acolade)
 
 export default function App() {
   return (
     <Router>
       <div className="app">
-        {/* HEADER */}
+        <ToastContainer />  {/* <- trebuie montat o singură dată în aplicație */}
+
         <header className="header">
           <h1>🐾 Pet Care Management</h1>
         </header>
 
-        {/* NAVBAR */}
         <nav className="navbar">
           <Link to="/">Home</Link>
           <Link to="/owners">Owners</Link>
@@ -21,7 +23,6 @@ export default function App() {
           <Link to="/appointments">Appointments</Link>
         </nav>
 
-        {/* MAIN */}
         <main className="main">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -31,7 +32,6 @@ export default function App() {
           </Routes>
         </main>
 
-        {/* FOOTER */}
         <footer className="footer">
           © {new Date().getFullYear()} Pet Care Management
         </footer>
