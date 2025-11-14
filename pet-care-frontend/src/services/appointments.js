@@ -1,4 +1,5 @@
 import { api } from '../api/client';
+import Api from '../services/appointments.js';
 
 const Appointments = {
   list: () => api.get('/appointments').then(r => r.data),
@@ -10,4 +11,3 @@ const Appointments = {
 };
 
 export default Appointments;
-

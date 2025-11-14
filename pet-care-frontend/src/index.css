@@ -342,45 +342,84 @@ body {
 .appointments-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 16px;                  /* distanță între carduri */
 }
 
 .appointment-card {
-  display: flex;
+  display: flex;              /* text în stânga, butoane în dreapta */
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 18px;
+
+  background: var(--card-bg); /* casetă albă */
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
 }
 
-.appointment-info {
+.appointment-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+  border-color: #d8dbe2;      /* ușor accent la hover */
+}
+
+.appointment-info {           /* zona din stânga */
   flex: 1;
+  min-width: 0;
 }
 
 .appointment-header h3 {
-  margin-bottom: 0.75rem;
+  margin: 0 0 6px 0;
   color: var(--text-primary);
-  font-size: 1.125rem;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
-.appointment-description {
-  margin-bottom: 0.75rem;
+.appointment-description {    /* titlu/descriere sub dată-ora */
+  margin: 0 0 8px 0;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-.appointment-details {
+.appointment-details {        /* rândurile Owner/Pet */
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 4px;
+  font-size: .92rem;
   color: var(--text-secondary);
 }
 
+/* coloana de butoane din dreapta */
 .appointment-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
+  align-items: flex-end;
+  white-space: nowrap;
 }
+
+/* subtitluri „Upcoming” / „Past” – puțin accent și spațiu deasupra */
+.section-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* Responsive: pe ecrane mici butoanele trec dedesubt */
+@media (max-width: 768px) {
+  .appointment-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .appointment-actions {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
+
+
 
 /* Home Page */
 .home-page {
