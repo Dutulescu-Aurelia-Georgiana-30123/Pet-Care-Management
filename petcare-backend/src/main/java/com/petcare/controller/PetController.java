@@ -4,12 +4,17 @@ import com.petcare.model.Pet;
 import com.petcare.model.Owner;
 import com.petcare.repository.PetRepository;
 import com.petcare.repository.OwnerRepository;
+import com.petcare.repository.AppointmentRepository;
 import com.petcare.dto.PetDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.petcare.exception.ValidationException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 
 import java.util.List;
@@ -27,6 +32,9 @@ public class PetController {
 
     @Autowired
     private OwnerRepository ownerRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     // ✅ GET - toate animalele
     @GetMapping
@@ -87,13 +95,22 @@ public class PetController {
     }
 
     // ✅ DELETE - șterge un animal
+    @Transactional
     @DeleteMapping("/{id}")
-    public String deletePet(@PathVariable Long id) {
-        Pet pet = petRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pet not found with id: " + id));
+    public ResponseEntity<?> deletePet(@PathVariable Long id) {
 
-        petRepository.delete(pet);
-        return "Pet with ID " + id + " deleted successfully.";
+        if (!petRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Pet not found.");
+        }
+
+        // 👇 1. ștergem toate programările acestui pet
+        appointmentRepository.deleteByPetId(id);
+
+        // 👇 2. ștergem pet-ul
+        petRepository.deleteById(id);
+
+        return ResponseEntity.ok("Pet deleted successfully.");
     }
 
     // 🔍 Custom Query - toate animalele unui anumit proprietar
