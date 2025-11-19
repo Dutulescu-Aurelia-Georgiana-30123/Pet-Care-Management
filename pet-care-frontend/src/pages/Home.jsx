@@ -41,12 +41,12 @@ export default function Home() {
       <div className="welcome-section">
         <h1>🐾 Welcome to Pet Care Management!</h1>
         <p className="welcome-text">
-          Sistem de management pentru cabinetul veterinar. Gestionează owners, pets și appointments într-un singur loc.
+          Veterinary practice management system. Manage owners, pets, and appointments in one place.
         </p>
       </div>
 
       {stats.loading ? (
-        <div className="loading">Se încarcă statisticile...</div>
+        <div className="loading">Loading statistics...</div>
       ) : (
         <div className="stats-grid">
           <div className="stat-card">
@@ -74,19 +74,19 @@ export default function Home() {
       )}
 
       <div className="features-section">
-        <h2>Funcționalități</h2>
+        <h2>Features</h2>
         <div className="features-grid">
           <div className="feature-card">
             <h3>👤 Owners</h3>
-            <p>Gestionează informațiile despre proprietarii de animale. Adaugă, editează sau șterge owners.</p>
+            <p>Manage information about animal owners. Add, edit or delete owners.</p>
           </div>
           <div className="feature-card">
             <h3>🐶 Pets</h3>
-            <p>Administrează animalele de companie. Filtrează după owner sau species.</p>
+            <p>Manage pets. Filter by owner or species.</p>
           </div>
           <div className="feature-card">
             <h3>📅 Appointments</h3>
-            <p>Programează și gestionează întâlnirile cu clienții și animalele lor.</p>
+            <p>Schedule and manage appointments with clients and their animals.</p>
           </div>
         </div>
       </div>

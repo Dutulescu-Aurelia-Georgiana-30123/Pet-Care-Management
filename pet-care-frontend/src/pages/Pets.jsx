@@ -25,8 +25,9 @@ export default function PetsPage() {
     ownerId: ''
   });
   const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false); // 👈 ca la Owners
 
-  // 👇 ref-uri pentru scroll + focus
+  // ref-uri pentru scroll + focus
   const formRef = useRef(null);
   const firstFieldRef = useRef(null);
 
@@ -105,6 +106,20 @@ export default function PetsPage() {
       });
   }, [rows, filters, ownersMap]);
 
+  // deschide formular pentru creare
+  function openCreateForm() {
+    setForm({ name: '', species: '', breed: '', ownerId: '' });
+    setEditingId(null);
+    setShowForm(true);
+
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        firstFieldRef.current?.focus();
+      }, 250);
+    });
+  }
+
   // ------- CRUD form -------
   async function submitPet(e) {
     e.preventDefault();
@@ -129,6 +144,7 @@ export default function PetsPage() {
       }
       setForm({ name: '', species: '', breed: '', ownerId: '' });
       setEditingId(null);
+      setShowForm(false); // ca la Owners: îl închidem după salvare
       await fetchAll();
     } catch (e) {
       console.error(e);
@@ -138,119 +154,129 @@ export default function PetsPage() {
     }
   }
 
-async function onDelete(id) {
-  if (!confirm('Ștergi acest pet?')) return;
-  setLoading(true);
-  try {
-    await PetsApi.remove(id);
-    toast('Pet șters', 'success');
-    await fetchAll();
-  } catch (e) {
-    console.error(e);
-    const msg =
-      e?.response?.data?.error ||
-      (typeof e?.response?.data === 'string' ? e.response.data : null) ||
-      'Ștergerea a eșuat.';
-    toast(msg, 'error');
-  } finally {
-    setLoading(false);
-  }
-}
-
-  function startEdit(p) {
-  // încercăm întâi să luăm ID-ul direct de pe pet
-  let ownerId = p.ownerId ? String(p.ownerId) : '';
-
-  // dacă nu avem ownerId, încercăm să-l găsim după numele ownerului
-  if (!ownerId) {
-    const norm = (s) => (s || '').toString().trim().toLowerCase();
-    const targetName = norm(p.ownerName);
-
-    if (targetName) {
-      const found = owners.find((o) => norm(o.name) === targetName);
-      if (found) {
-        ownerId = String(found.id);
-      }
+  async function onDelete(id) {
+    if (!confirm('Ștergi acest pet?')) return;
+    setLoading(true);
+    try {
+      await PetsApi.remove(id);
+      toast('Pet șters', 'success');
+      await fetchAll();
+    } catch (e) {
+      console.error(e);
+      const msg =
+        e?.response?.data?.error ||
+        (typeof e?.response?.data === 'string' ? e.response.data : null) ||
+        'Ștergerea a eșuat.';
+      toast(msg, 'error');
+    } finally {
+      setLoading(false);
     }
   }
 
-  setForm({
-    name: p.name || '',
-    species: p.species || '',
-    breed: p.breed || '',
-    ownerId: ownerId || '',
-  });
-  setEditingId(p.id);
+  function startEdit(p) {
+    // încercăm mai întâi id-ul direct
+    let ownerId = p.ownerId ? String(p.ownerId) : '';
 
-  // scroll la formular + focus pe Name
-  requestAnimationFrame(() => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => {
-      firstFieldRef.current?.focus();
-    }, 250);
-  });
-}
+    // dacă nu avem ownerId, încercăm să-l găsim după nume
+    if (!ownerId) {
+      const norm = (s) => (s || '').toString().trim().toLowerCase();
+      const targetName = norm(p.ownerName);
 
+      if (targetName) {
+        const found = owners.find((o) => norm(o.name) === targetName);
+        if (found) {
+          ownerId = String(found.id);
+        }
+      }
+    }
+
+    setForm({
+      name: p.name || '',
+      species: p.species || '',
+      breed: p.breed || '',
+      ownerId: ownerId || '',
+    });
+    setEditingId(p.id);
+    setShowForm(true);
+
+    // scroll la formular + focus pe Name
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        firstFieldRef.current?.focus();
+      }, 250);
+    });
+  }
 
   function cancelEdit() {
     setEditingId(null);
     setForm({ name: '', species: '', breed: '', ownerId: '' });
+    setShowForm(false);
   }
 
   // ------- render -------
   return (
     <section>
-      <h2>🐶 Pets</h2>
+      <div className="page-header">
+        <h2>🐶 Pets</h2>
+        <button
+          className="btn btn-primary"
+          onClick={openCreateForm}
+          disabled={loading}
+        >
+          + Add Pet
+        </button>
+      </div>
 
-      {/* Form Add/Edit */}
-      <div className="card form-card" ref={formRef}>
-        <h3>{editingId ? 'Edit pet' : 'Add pet'}</h3>
-        <form onSubmit={submitPet}>
-          <div className="form-group" style={{ maxWidth: 360 }}>
-            <label>Name</label>
-            <input
-              ref={firstFieldRef}
-              required
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Species</label>
+      {/* Form Add/Edit – afișat doar când showForm = true */}
+      {showForm && (
+        <div className="card form-card" ref={formRef}>
+          <h3>{editingId ? 'Edit pet' : 'Add pet'}</h3>
+          <form onSubmit={submitPet}>
+            <div className="form-group" style={{ maxWidth: 360 }}>
+              <label>Name</label>
               <input
-                value={form.species}
-                onChange={e => setForm({ ...form, species: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Breed</label>
-              <input
-                value={form.breed}
-                onChange={e => setForm({ ...form, breed: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Owner</label>
-              <select
+                ref={firstFieldRef}
                 required
-                value={form.ownerId}
-                onChange={e => setForm({ ...form, ownerId: e.target.value })}
-              >
-                <option value="">— Choose owner —</option>
-                {owners.map(o => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
-                ))}
-              </select>
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+              />
             </div>
-          </div>
 
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary">
-              {editingId ? 'Save changes' : 'Create'}
-            </button>
-            {editingId && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Species</label>
+                <input
+                  value={form.species}
+                  onChange={e => setForm({ ...form, species: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Breed</label>
+                <input
+                  value={form.breed}
+                  onChange={e => setForm({ ...form, breed: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Owner</label>
+                <select
+                  required
+                  value={form.ownerId}
+                  onChange={e => setForm({ ...form, ownerId: e.target.value })}
+                >
+                  <option value="">— Choose owner —</option>
+                  {owners.map(o => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                {editingId ? 'Save changes' : 'Create'}
+              </button>
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -258,10 +284,10 @@ async function onDelete(id) {
               >
                 Cancel
               </button>
-            )}
-          </div>
-        </form>
-      </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Bara de filtre */}
       <div className="card filters-card">

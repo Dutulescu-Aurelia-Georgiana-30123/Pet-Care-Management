@@ -141,10 +141,10 @@ export default function Appointments() {
   // ------- form -------
   function validateForm() {
     const { date, time, description, ownerId, petId } = form;
-    if (!date || !time) return 'Completează data și ora.';
-    if (!description.trim()) return 'Descrierea este obligatorie.';
-    if (!ownerId) return 'Selectează un owner.';
-    if (!petId) return 'Selectează un pet.';
+    if (!date || !time) return 'Complete date & hour.';
+    if (!description.trim()) return 'Description is required.';
+    if (!ownerId) return 'Select owner.';
+    if (!petId) return 'Select pet.';
     return '';
   }
 
@@ -173,10 +173,10 @@ export default function Appointments() {
     try {
       if (editingId) {
         await Api.update(editingId, payload);
-        toast('Programare actualizată!', 'success');
+        toast('Updated schedule!', 'success');
       } else {
         await Api.create(payload);
-        toast('Programare creată!', 'success');
+        toast('Created schedule!', 'success');
       }
       resetForm();
       ownerFilter ? loadByOwner() : loadAll();
@@ -248,11 +248,11 @@ export default function Appointments() {
   }
 
   async function onDelete(id) {
-    if (!confirm('Ștergi această programare?')) return;
+    if (!confirm('Are you deleting this schedule?')) return;
     setLoading(true);
     try {
       await Api.remove(id);
-      toast('Programare ștearsă.', 'success');
+      toast('Deleted scheldule', 'success');
       ownerFilter ? loadByOwner() : loadAll();
     } catch (e) {
       console.error(e);

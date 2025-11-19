@@ -6,13 +6,15 @@
 }
 
 :root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --secondary-color: #6b7280;
+  /* noua paletă maro */
+  --primary-color: #c295b8;   /* maroniu deschis */
+  --primary-hover: #81456a;   /* maroniu un pic mai închis la hover */
+
+  --secondary-color: #92777e;
   --success-color: #10b981;
-  --danger-color: #ef4444;
+  --danger-color: #e42424;
   --warning-color: #f59e0b;
-  --bg-color: #f9fafb;
+  --bg-color: #ffffff;
   --card-bg: #ffffff;
   --text-primary: #111827;
   --text-secondary: #6b7280;
@@ -425,7 +427,6 @@ body {
 .home-page {
   max-width: 1200px;
   margin: 0 auto;
-  color: red;
 }
 
 .welcome-section {

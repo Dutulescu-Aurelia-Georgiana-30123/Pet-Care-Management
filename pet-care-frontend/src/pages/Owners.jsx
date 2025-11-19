@@ -54,7 +54,7 @@ export default function Owners() {
   }
 
   function validate() {
-    if (!form.name.trim()) return 'Numele este obligatoriu.';
+    if (!form.name.trim()) return 'The name is required.';
     const telOk = /^(\+4)?07\d{8}$/.test(form.phone.trim());
     if (!telOk) return 'Telefon invalid. Format: 07xxxxxxxx (opțional +4 în față).';
     const emailOk = /^\S+@\S+\.\S+$/.test(form.email.trim());
@@ -121,7 +121,7 @@ export default function Owners() {
 
       {showForm && (
         <div className="card form-card" ref={formRef}>
-          <h3>{editingId ? 'Edit Owner' : 'Add new Owner'}</h3>
+          <h3>{editingId ? 'Edit Owner' : 'Add new owner'}</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Name *</label>
