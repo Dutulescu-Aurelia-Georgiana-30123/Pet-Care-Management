@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import OwnersService from '../services/owners';
 import { toast } from '../components/Toast.jsx';
 
@@ -9,6 +9,10 @@ export default function Owners() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
+
+  // 👇 ref-uri pentru scroll + focus
+  const formRef = useRef(null);
+  const firstFieldRef = useRef(null);
 
   useEffect(() => { loadOwners(); }, []);
 
@@ -39,14 +43,20 @@ export default function Owners() {
     });
     setEditingId(owner.id);
     setShowForm(true);
+
+    // 👇 după ce apare formularul, facem scroll sus și focus pe Name
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        firstFieldRef.current?.focus();
+      }, 250);
+    });
   }
 
   function validate() {
     if (!form.name.trim()) return 'Numele este obligatoriu.';
-    // telefon 07xxxxxxxx (opțional +4)
     const telOk = /^(\+4)?07\d{8}$/.test(form.phone.trim());
     if (!telOk) return 'Telefon invalid. Format: 07xxxxxxxx (opțional +4 în față).';
-    // validare email simplă
     const emailOk = /^\S+@\S+\.\S+$/.test(form.email.trim());
     if (!emailOk) return 'Email invalid.';
     return '';
@@ -61,10 +71,10 @@ export default function Owners() {
     try {
       if (editingId) {
         await OwnersService.update(editingId, form);
-        toast('Owner actualizat cu succes!', 'success');
+        toast('Owner updated successfully!', 'success');
       } else {
         await OwnersService.create(form);
-        toast('Owner creat cu succes!', 'success');
+        toast('Owner created successfully!', 'success');
       }
       resetForm();
       await loadOwners();
@@ -82,15 +92,15 @@ export default function Owners() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Ștergi acest owner?')) return;
+    if (!window.confirm('Are you deleting this owner?')) return;
     setLoading(true);
     try {
       await OwnersService.remove(id);
-      toast('Owner șters cu succes!', 'success');
+      toast('Owner successfully deleted!', 'success');
       await loadOwners();
     } catch (e) {
       console.error(e);
-      toast('Nu am putut șterge owner-ul.', 'error');
+      toast('Could not delete the owner.', 'error');
     } finally {
       setLoading(false);
     }
@@ -105,22 +115,23 @@ export default function Owners() {
           onClick={() => { resetForm(); setShowForm(true); }}
           disabled={loading}
         >
-          + Adaugă Owner
+          + Add Owner
         </button>
       </div>
 
       {showForm && (
-        <div className="card form-card">
-          <h3>{editingId ? 'Editează Owner' : 'Adaugă Owner Nou'}</h3>
+        <div className="card form-card" ref={formRef}>
+          <h3>{editingId ? 'Edit Owner' : 'Add new Owner'}</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Nume *</label>
+              <label>Name *</label>
               <input
+                ref={firstFieldRef}
                 type="text"
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Nume complet"
+                placeholder="Full name "
                 minLength={2}
                 maxLength={50}
               />
@@ -149,10 +160,15 @@ export default function Owners() {
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Salvare...' : (editingId ? 'Actualizează' : 'Creează')}
+                {loading ? 'Save...' : (editingId ? 'Update' : 'Create')}
               </button>
-              <button type="button" className="btn btn-secondary" onClick={resetForm} disabled={loading}>
-                Anulează
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={resetForm}
+                disabled={loading}
+              >
+                Cancel
               </button>
             </div>
           </form>
@@ -187,14 +203,14 @@ export default function Owners() {
                   onClick={() => startEdit(owner)}
                   disabled={loading}
                 >
-                  Editează
+                  Edit owner
                 </button>
                 <button
                   className="btn btn-sm btn-danger"
                   onClick={() => handleDelete(owner.id)}
                   disabled={loading}
                 >
-                  Șterge
+                  Delete owner
                 </button>
               </div>
             </div>

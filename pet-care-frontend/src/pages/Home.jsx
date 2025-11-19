@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <div className="home-page">
       <div className="welcome-section">
-        <h1>🐾 Bine ai venit la Pet Care Management!</h1>
+        <h1>🐾 Welcome to Pet Care Management!</h1>
         <p className="welcome-text">
           Sistem de management pentru cabinetul veterinar. Gestionează owners, pets și appointments într-un singur loc.
         </p>
