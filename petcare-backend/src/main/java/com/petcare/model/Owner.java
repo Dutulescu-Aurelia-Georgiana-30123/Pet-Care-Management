@@ -34,6 +34,9 @@ public class Owner {
     @Email(message = "Adresa de email nu este validă.")
     private String email;
 
+    // 👇 nou: parolă (fără @NotBlank ca să nu stricăm ownerii existenți)
+    private String password;
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Pet> pets = new ArrayList<>();
@@ -58,6 +61,9 @@ public class Owner {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     public List<Pet> getPets() { return pets; }
     public void setPets(List<Pet> pets) { this.pets = pets; }
