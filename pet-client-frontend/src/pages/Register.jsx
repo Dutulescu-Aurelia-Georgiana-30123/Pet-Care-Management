@@ -1,16 +1,12 @@
+// src/pages/Register.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Auth from '../services/auth';
+import Auth from '../services/auth.js';
 
 export default function Register() {
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    password: '',
-  });
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -24,73 +20,78 @@ export default function Register() {
       console.error(e);
       const msg =
         e?.response?.data ||
-        'Register failed. Check data.';
-      setErr(typeof msg === 'string' ? msg : 'Register failed.');
+        'Registration failed.';
+      setErr(typeof msg === 'string' ? msg : 'Registration failed.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '40px auto', padding: 16 }}>
+    <div style={{ maxWidth: 420, margin: '40px auto', color: 'white' }}>
       <h1>Register</h1>
-
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
-          <label>Name</label><br />
+          <label>Name</label>
+          <br />
           <input
-            type="text"
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
             required
-            style={{ width: '100%', padding: 8 }}
           />
         </div>
-
         <div style={{ marginBottom: 12 }}>
-          <label>Phone</label><br />
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={e => setForm({ ...form, phone: e.target.value })}
-            style={{ width: '100%', padding: 8 }}
-          />
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <label>Email</label><br />
+          <label>Email</label>
+          <br />
           <input
             type="email"
             value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
             required
-            style={{ width: '100%', padding: 8 }}
           />
         </div>
-
         <div style={{ marginBottom: 12 }}>
-          <label>Password</label><br />
+          <label>Phone</label>
+          <br />
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
+            required
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <label>Password</label>
+          <br />
           <input
             type="password"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
             required
-            style={{ width: '100%', padding: 8 }}
           />
         </div>
-
-        {err && (
-          <div style={{ color: 'red', marginBottom: 12 }}>{err}</div>
-        )}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create account'}
+        {err && <div style={{ color: 'salmon', marginBottom: 8 }}>{err}</div>}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: 'none',
+            background: '#10b981',
+            color: 'white',
+            cursor: 'pointer',
+          }}
+        >
+          {loading ? 'Creating account…' : 'Register'}
         </button>
       </form>
 
       <p style={{ marginTop: 16 }}>
-        Already have an account?{' '}
-        <Link to="/login">Login</Link>
+        Already have an account? <Link to="/login">Login</Link>
       </p>
     </div>
   );

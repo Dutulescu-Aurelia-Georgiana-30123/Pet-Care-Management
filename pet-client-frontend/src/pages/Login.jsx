@@ -1,11 +1,12 @@
-import { useState } from 'react';
+// src/pages/Login.jsx
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Auth from '../services/auth';
+import Auth from '../services/auth.js';
 
-export default function Login({ onLogin, owner }) {
+export default function Login({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -13,9 +14,9 @@ export default function Login({ onLogin, owner }) {
     setErr('');
     setLoading(true);
     try {
-      const data = await Auth.login(form);   // { email, password }
-      onLogin(data);                         // salvăm owner-ul în App
-      navigate('/dashboard');
+      const data = await Auth.login(form); // { id, name, email, phone... }
+      if (onLogin) onLogin(data);
+      navigate('/home');
     } catch (e) {
       console.error(e);
       const msg =
@@ -28,48 +29,50 @@ export default function Login({ onLogin, owner }) {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '40px auto', padding: 16 }}>
+    <div style={{ maxWidth: 420, margin: '40px auto', color: 'white' }}>
       <h1>Login</h1>
-
-      {owner && (
-        <p>Already logged in as <strong>{owner.name}</strong></p>
-      )}
-
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
-          <label>Email</label><br />
+          <label>Email</label>
+          <br />
           <input
             type="email"
             value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
             required
-            style={{ width: '100%', padding: 8 }}
           />
         </div>
-
         <div style={{ marginBottom: 12 }}>
-          <label>Password</label><br />
+          <label>Password</label>
+          <br />
           <input
             type="password"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            style={{ width: '100%', padding: 8, borderRadius: 8 }}
             required
-            style={{ width: '100%', padding: 8 }}
           />
         </div>
-
-        {err && (
-          <div style={{ color: 'red', marginBottom: 12 }}>{err}</div>
-        )}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+        {err && <div style={{ color: 'salmon', marginBottom: 8 }}>{err}</div>}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: 'none',
+            background: '#3b82f6',
+            color: 'white',
+            cursor: 'pointer',
+          }}
+        >
+          {loading ? 'Logging in…' : 'Login'}
         </button>
       </form>
 
       <p style={{ marginTop: 16 }}>
-        Don&apos;t have an account?{' '}
-        <Link to="/register">Register</Link>
+        Don&apos;t have an account? <Link to="/register">Register</Link>
       </p>
     </div>
   );
