@@ -15,7 +15,7 @@ export default function ClientAppointments({ owner }) {
 
   const [error, setError] = useState("");
 
-  // încărcăm pets + appointments pentru ownerul logat
+  // încărcăm pets + appointments pentru owner-ul logat
   useEffect(() => {
     if (!owner?.id) return;
 
@@ -93,7 +93,6 @@ export default function ClientAppointments({ owner }) {
     setLoading(true);
     try {
       await Appointments.create(payload);
-      // reîncarcăm lista
       const apptRes = await Appointments.byOwner(owner.id).catch(() => []);
       setAppointments(Array.isArray(apptRes) ? apptRes : []);
       resetForm();
@@ -130,13 +129,12 @@ export default function ClientAppointments({ owner }) {
   return (
     <div className="client-page">
       <div className="client-page-inner">
-        {/* titlu + (opțional) butonul ca la pets */}
+        {/* header My Appointments + buton "New appointment" */}
         <div className="client-page-header-row">
           <h2 className="client-page-title">
             My Appointments <span>📅</span>
           </h2>
 
-          {/* doar aspect, nu e obligatoriu să facă ceva special */}
           <button
             type="button"
             className="client-page-add-btn"
@@ -234,59 +232,80 @@ export default function ClientAppointments({ owner }) {
           </div>
         ) : (
           appointments.map((a) => {
-    const dateObj = a.dateTime ? new Date(a.dateTime) : null;
+            const dateObj = a.dateTime ? new Date(a.dateTime) : null;
 
-    // 🔎 încercăm să deducem id-ul pet-ului din cât mai multe variante
-    const apptPetIdRaw =
-      a.pet?.id ??
-      a.petId ??
-      a.pet_id ??
-      a.petID ??
-      a.pet?.petId ??
-      a.pet?.pet_id;
+            // încercăm să deducem id-ul pet-ului, indiferent cum vine din backend
+            const apptPetIdRaw =
+              (a.pet && typeof a.pet === "object" && a.pet.id) ??
+              (typeof a.pet === "number" || typeof a.pet === "string"
+                ? a.pet
+                : undefined) ??
+              a.petId ??
+              a.pet_id ??
+              a.petID ??
+              (a.pet && typeof a.pet === "object" && a.pet.petId) ??
+              (a.pet && typeof a.pet === "object" && a.pet.pet_id);
 
-    // comparăm ca string ca să nu conteze number vs string
-    const pet =
-      apptPetIdRaw != null
-        ? pets.find((p) => String(p.id) === String(apptPetIdRaw))
-        : undefined;
+            // căutăm pet-ul în lista de pets a owner-ului
+            const pet =
+              apptPetIdRaw != null
+                ? pets.find((p) => String(p.id) === String(apptPetIdRaw))
+                : undefined;
 
-    const petName = pet?.name || a.pet?.name || "Pet";
-    const petSpecies = pet?.species || a.pet?.species;
-    const petBreed = pet?.breed || a.pet?.breed;
+            // nume / specie / rasă – folosim tot ce găsim
+            const petName =
+              pet?.name ||
+              (a.pet && typeof a.pet === "object" && a.pet.name) ||
+              a.petName ||
+              a.pet_name ||
+              "Pet";
 
-    return (
-      <div key={a.id} className="client-card client-appt-card">
-        <div className="client-appt-main">
-          <div className="client-appt-title">
-            {petName} –{" "}
-            {dateObj ? dateObj.toLocaleString() : "Unknown date / time"}
-          </div>
+            const petSpecies =
+              pet?.species ||
+              (a.pet && typeof a.pet === "object" && a.pet.species) ||
+              a.petSpecies ||
+              a.pet_species;
 
-          <div className="client-appt-meta">
-            {petSpecies}
-            {petBreed ? ` · ${petBreed}` : ""}
-          </div>
+            const petBreed =
+              pet?.breed ||
+              (a.pet && typeof a.pet === "object" && a.pet.breed) ||
+              a.petBreed ||
+              a.pet_breed;
 
-          <div className="client-appt-desc">
-            {a.description || "No description"}
-          </div>
-        </div>
+            return (
+              <div key={a.id} className="client-card client-appt-card">
+                <div className="client-appt-main">
+                  <div className="client-appt-title">
+                    {petName} –{" "}
+                    {dateObj
+                      ? dateObj.toLocaleString()
+                      : "Unknown date / time"}
+                  </div>
 
-        <div className="client-pet-actions">
-          <button
-            type="button"
-            className="client-btn-danger"
-            onClick={() => handleDelete(a.id)}
-            disabled={loading}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    );
-  })
-)}
+                  <div className="client-appt-meta">
+                    {petSpecies}
+                    {petBreed ? ` · ${petBreed}` : ""}
+                  </div>
+
+                  <div className="client-appt-desc">
+                    {a.description || "No description"}
+                  </div>
+                </div>
+
+                <div className="client-pet-actions">
+                  <button
+                    type="button"
+                    className="client-btn-danger"
+                    onClick={() => handleDelete(a.id)}
+                    disabled={loading}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
