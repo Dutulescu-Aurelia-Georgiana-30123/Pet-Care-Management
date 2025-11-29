@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Pets from '../services/pets.js';
 
-export default function ClientPets({ owner }) {
+export default function ClientPets({ owner, showToast}) {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -84,46 +84,47 @@ export default function ClientPets({ owner }) {
 
     setLoading(true);
     try {
-      if (editingId) {
-        await Pets.update(editingId, payload);
-      } else {
-        await Pets.create(payload);
-      }
+  const payload = {
+    name: form.name.trim(),
+    species: form.species.trim() || undefined,
+    breed: form.breed.trim() || undefined,
+    owner: { id: owner.id },
+  };
 
-      await loadPets();
-      resetForm();
-      setShowForm(false);
-    } catch (err) {
-      console.error('save pet error', err?.response || err);
+  if (editingId) {
+    await Pets.update(editingId, payload);
+    showToast && showToast('Pet updated successfully.');
+  } else {
+    await Pets.create(payload);
+    showToast && showToast('Pet created successfully.');
+  }
 
-      // extragem un mesaj cât mai clar de la backend / axios
-      const serverMsg =
-        err?.response?.data?.message ??
-        err?.response?.data?.error ??
-        (typeof err?.response?.data === 'string'
-          ? err.response.data
-          : null) ??
-        err?.message;
-
-      setError(serverMsg || 'Could not save pet. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  await loadPets();
+  resetForm();
+  setShowForm(false);
+} catch (err) {
+  console.error('save pet error', err?.response?.data || err);
+  setError('Could not save pet. Please try again.');
+  showToast && showToast('Could not save pet.', 'error');
+} finally {
+  setLoading(false);
+}
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Delete this pet?')) return;
-    setLoading(true);
-    try {
-      await Pets.remove(id);
-      await loadPets();
-    } catch (err) {
-      console.error('delete pet error', err?.response || err);
-      alert('Could not delete pet.');
-    } finally {
-      setLoading(false);
-    }
+  if (!window.confirm('Delete this pet?')) return;
+  setLoading(true);
+  try {
+    await Pets.remove(id);
+    await loadPets();
+    showToast && showToast('Pet deleted successfully.');
+  } catch {
+    alert('Could not delete pet.');
+    showToast && showToast('Could not delete pet.', 'error');
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="client-page">
