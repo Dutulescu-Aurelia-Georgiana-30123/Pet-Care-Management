@@ -2,29 +2,11 @@
 import { api } from '../api/client';
 
 const Pets = {
-  byOwner: (ownerId) =>
-    api.get(`/pets/owner/${ownerId}`).then((r) => r.data),
-
-  createForOwner: (ownerId, data) =>
-    api
-      .post('/pets', {
-        name: data.name,
-        species: data.species || null,
-        breed: data.breed || null,
-        owner: { id: ownerId },
-      })
-      .then((r) => r.data),
-
-  update: (id, ownerId, data) =>
-    api
-      .put(`/pets/${id}`, {
-        name: data.name,
-        species: data.species || null,
-        breed: data.breed || null,
-        owner: { id: ownerId },
-      })
-      .then((r) => r.data),
-
+  list: (params) => api.get('/pets', { params }).then((r) => r.data),
+  get: (id) => api.get(`/pets/${id}`).then((r) => r.data),
+  byOwner: (ownerId) => api.get(`/pets/owner/${ownerId}`).then((r) => r.data),
+  create: (data) => api.post('/pets', data).then((r) => r.data),
+  update: (id, data) => api.put(`/pets/${id}`, data).then((r) => r.data),
   remove: (id) => api.delete(`/pets/${id}`).then((r) => r.data),
 };
 

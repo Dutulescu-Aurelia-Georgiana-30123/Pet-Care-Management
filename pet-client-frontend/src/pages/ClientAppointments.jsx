@@ -1,326 +1,293 @@
 // src/pages/ClientAppointments.jsx
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Appointments from '../services/appointments.js';
-import Pets from '../services/pets.js';
+import { useEffect, useState } from "react";
+import Appointments from "../services/appointments.js";
+import Pets from "../services/pets.js";
 
 export default function ClientAppointments({ owner }) {
   const [appointments, setAppointments] = useState([]);
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
 
-  const [form, setForm] = useState({
-    date: '',
-    time: '',
-    description: '',
-    petId: '',
-  });
-  const [editingId, setEditingId] = useState(null);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [petId, setPetId] = useState("");
+  const [description, setDescription] = useState("");
 
-  const formRef = useRef(null);
+  const [error, setError] = useState("");
 
+  // încărcăm pets + appointments pentru ownerul logat
   useEffect(() => {
     if (!owner?.id) return;
-    loadAll();
-  }, [owner]);
 
-  async function loadAll() {
-    setLoading(true);
-    setErr('');
-    try {
-      const [apps, petsData] = await Promise.all([
-        Appointments.byOwner(owner.id).catch(() => []),
-        Pets.byOwner(owner.id).catch(() => []),
-      ]);
-      setAppointments(Array.isArray(apps) ? apps : []);
-      setPets(Array.isArray(petsData) ? petsData : []);
-    } catch (e) {
-      console.error(e);
-      setErr('Could not load appointments.');
-    } finally {
-      setLoading(false);
+    async function load() {
+      setLoading(true);
+      setError("");
+      try {
+        const [petsRes, apptRes] = await Promise.all([
+          Pets.byOwner(owner.id).catch(() => []),
+          Appointments.byOwner(owner.id).catch(() => []),
+        ]);
+
+        setPets(Array.isArray(petsRes) ? petsRes : []);
+        setAppointments(Array.isArray(apptRes) ? apptRes : []);
+      } catch (e) {
+        console.error("load appointments error", e);
+        setError("Could not load appointments. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+
+    load();
+  }, [owner?.id]);
 
   function resetForm() {
-    setForm({ date: '', time: '', description: '', petId: '' });
-    setEditingId(null);
+    setDate("");
+    setTime("");
+    setPetId("");
+    setDescription("");
+    setError("");
   }
 
-  function startEdit(a) {
-    const d = new Date(a.dateTime);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
+  // nu permitem programări în trecut
+  function validateNotPast(dateStr, timeStr) {
+    if (!dateStr || !timeStr) {
+      return "Please fill in date and time.";
+    }
+    const combined = new Date(`${dateStr}T${timeStr}`);
+    const now = new Date();
 
-    setForm({
-      date: `${yyyy}-${mm}-${dd}`,
-      time: `${hh}:${mi}`,
-      description: a.description || '',
-      petId: a.petId ? String(a.petId) : '',
-    });
-    setEditingId(a.id);
-
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    if (combined.getTime() < now.getTime()) {
+      return "You cannot create appointments in the past.";
+    }
+    return "";
   }
 
-  async function onSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.date || !form.time || !form.petId || !form.description.trim()) {
-      setErr('Please fill all fields.');
+    setError("");
+
+    if (!owner?.id) {
+      setError("You must be logged in as an owner.");
+      return;
+    }
+    if (!petId) {
+      setError("Please choose a pet.");
       return;
     }
 
+    const validationMsg = validateNotPast(date, time);
+    if (validationMsg) {
+      setError(validationMsg);
+      return;
+    }
+
+    const payload = {
+      // Spring LocalDateTime – trimitem "YYYY-MM-DDTHH:mm"
+      dateTime: `${date}T${time}`,
+      description: description.trim() || "Veterinary appointment",
+      owner: { id: owner.id },
+      pet: { id: Number(petId) },
+    };
+
     setLoading(true);
-    setErr('');
     try {
-      if (editingId) {
-        await Appointments.update(editingId, owner.id, Number(form.petId), form);
-      } else {
-        await Appointments.createForOwner(owner.id, Number(form.petId), form);
-      }
+      await Appointments.create(payload);
+      // reîncarcăm lista
+      const apptRes = await Appointments.byOwner(owner.id).catch(() => []);
+      setAppointments(Array.isArray(apptRes) ? apptRes : []);
       resetForm();
-      await loadAll();
-    } catch (e) {
-      console.error(e);
-      const msg =
-        e?.response?.data ||
-        'Saving appointment failed.';
-      setErr(typeof msg === 'string' ? msg : 'Saving appointment failed.');
+    } catch (err) {
+      console.error("save appointment error", err?.response?.data || err);
+      setError(
+        err?.response?.data?.error ||
+          "Failed to save appointment. Please check the fields."
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function onDelete(id) {
-    if (!window.confirm('Cancel this appointment?')) return;
+  async function handleDelete(id) {
+    if (!window.confirm("Delete this appointment?")) return;
+
     setLoading(true);
-    setErr('');
     try {
       await Appointments.remove(id);
-      await loadAll();
-    } catch (e) {
-      console.error(e);
-      setErr('Could not cancel appointment.');
+      const apptRes = await Appointments.byOwner(owner.id).catch(() => []);
+      setAppointments(Array.isArray(apptRes) ? apptRes : []);
+    } catch (err) {
+      console.error("delete appointment error", err);
+      alert("Could not delete appointment.");
     } finally {
       setLoading(false);
     }
   }
 
-  const sorted = useMemo(
-    () =>
-      [...appointments].sort(
-        (a, b) => new Date(a.dateTime) - new Date(b.dateTime),
-      ),
-    [appointments],
-  );
+  // pentru atributul min la input[type=date]
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <section>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: 16,
-          alignItems: 'center',
-        }}
-      >
-        <h2>My Appointments 📅</h2>
-        <button
-          onClick={() => {
-            resetForm();
-            setTimeout(() => {
-              formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 50);
-          }}
-          style={{
-            padding: '6px 12px',
-            borderRadius: 999,
-            border: 'none',
-            background: '#22c55e',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          + New appointment
-        </button>
-      </div>
+    <div className="client-page">
+      <div className="client-page-inner">
+        {/* titlu + (opțional) butonul ca la pets */}
+        <div className="client-page-header-row">
+          <h2 className="client-page-title">
+            My Appointments <span>📅</span>
+          </h2>
 
-      {/* formular */}
-      <div
-        ref={formRef}
-        style={{
-          marginBottom: 24,
-          padding: 16,
-          borderRadius: 16,
-          background: '#1f2937',
-        }}
-      >
-        <h3>{editingId ? 'Edit appointment' : 'New appointment'}</h3>
-        <form onSubmit={onSubmit}>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div style={{ flex: 1, minWidth: 150 }}>
-              <label>Date</label>
-              <br />
+          {/* doar aspect, nu e obligatoriu să facă ceva special */}
+          <button
+            type="button"
+            className="client-page-add-btn"
+            onClick={() => {
+              document
+                .getElementById("appointment-form")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            + New appointment
+          </button>
+        </div>
+
+        {/* card cu formularul de creare */}
+        <div id="appointment-form" className="client-card">
+          <h3 className="client-card-title">New appointment</h3>
+
+          {error && <div className="client-error-banner">{error}</div>}
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="client-form-row">
+              <div className="auth-field client-form-field">
+                <label className="auth-label">Date *</label>
+                <input
+                  className="auth-input"
+                  type="date"
+                  value={date}
+                  min={todayStr}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="auth-field client-form-field">
+                <label className="auth-label">Time *</label>
+                <input
+                  className="auth-input"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="auth-field client-form-field">
+                <label className="auth-label">Pet *</label>
+                <select
+                  className="auth-input"
+                  value={petId}
+                  onChange={(e) => setPetId(e.target.value)}
+                  required
+                >
+                  <option value="">— choose pet —</option>
+                  {pets.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} {p.species ? `(${p.species})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label">Description</label>
               <input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                style={{ width: '100%', padding: 8, borderRadius: 8 }}
-                required
+                className="auth-input"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Consultation / vaccine / grooming…"
               />
             </div>
-            <div style={{ flex: 1, minWidth: 150 }}>
-              <label>Time</label>
-              <br />
-              <input
-                type="time"
-                value={form.time}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
-                style={{ width: '100%', padding: 8, borderRadius: 8 }}
-                required
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 150 }}>
-              <label>Pet</label>
-              <br />
-              <select
-                value={form.petId}
-                onChange={(e) => setForm({ ...form, petId: e.target.value })}
-                style={{ width: '100%', padding: 8, borderRadius: 8 }}
-                required
-              >
-                <option value="">— choose pet —</option>
-                {pets.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label>Description</label>
-            <br />
-            <input
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              style={{ width: '100%', padding: 8, borderRadius: 8 }}
-              placeholder="Consultation / vaccine / grooming…"
-              required
-            />
-          </div>
-
-          {err && (
-            <div style={{ color: 'salmon', marginBottom: 8 }}>{err}</div>
-          )}
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '8px 14px',
-                borderRadius: 8,
-                border: 'none',
-                background: '#3b82f6',
-                color: 'white',
-                cursor: 'pointer',
-              }}
-            >
-              {editingId ? 'Save changes' : 'Create'}
-            </button>
-            {editingId && (
+            <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+              <button className="auth-button" type="submit" disabled={loading}>
+                Create
+              </button>
               <button
                 type="button"
+                className="client-btn-secondary"
                 onClick={resetForm}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#6b7280',
-                  color: 'white',
-                  cursor: 'pointer',
-                }}
               >
                 Cancel
               </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* listă */}
-      {loading && sorted.length === 0 ? (
-        <div>Loading…</div>
-      ) : sorted.length === 0 ? (
-        <div>You don&apos;t have any appointments yet.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {sorted.map((a) => (
-            <div
-              key={a.id}
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                background: '#111827',
-                border: '1px solid #374151',
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                alignItems: 'flex-start',
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>
-                  {new Date(a.dateTime).toLocaleString()}
-                </div>
-                <div style={{ color: '#9ca3af', marginTop: 4 }}>
-                  {a.description}
-                </div>
-                <div style={{ color: '#9ca3af', marginTop: 4 }}>
-                  Pet: {a.petName || '—'}
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button
-                  onClick={() => startEdit(a)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#4b5563',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete(a.id)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#ef4444',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
-          ))}
+          </form>
         </div>
-      )}
-    </section>
+
+        {/* lista de programări */}
+        {loading && !appointments.length ? (
+          <div className="client-card">Loading…</div>
+        ) : appointments.length === 0 ? (
+          <div className="client-card client-empty">
+            You don&apos;t have any appointments yet. Click{" "}
+            <b>&quot;New appointment&quot;</b> to create one!
+          </div>
+        ) : (
+          appointments.map((a) => {
+    const dateObj = a.dateTime ? new Date(a.dateTime) : null;
+
+    // 🔎 încercăm să deducem id-ul pet-ului din cât mai multe variante
+    const apptPetIdRaw =
+      a.pet?.id ??
+      a.petId ??
+      a.pet_id ??
+      a.petID ??
+      a.pet?.petId ??
+      a.pet?.pet_id;
+
+    // comparăm ca string ca să nu conteze number vs string
+    const pet =
+      apptPetIdRaw != null
+        ? pets.find((p) => String(p.id) === String(apptPetIdRaw))
+        : undefined;
+
+    const petName = pet?.name || a.pet?.name || "Pet";
+    const petSpecies = pet?.species || a.pet?.species;
+    const petBreed = pet?.breed || a.pet?.breed;
+
+    return (
+      <div key={a.id} className="client-card client-appt-card">
+        <div className="client-appt-main">
+          <div className="client-appt-title">
+            {petName} –{" "}
+            {dateObj ? dateObj.toLocaleString() : "Unknown date / time"}
+          </div>
+
+          <div className="client-appt-meta">
+            {petSpecies}
+            {petBreed ? ` · ${petBreed}` : ""}
+          </div>
+
+          <div className="client-appt-desc">
+            {a.description || "No description"}
+          </div>
+        </div>
+
+        <div className="client-pet-actions">
+          <button
+            type="button"
+            className="client-btn-danger"
+            onClick={() => handleDelete(a.id)}
+            disabled={loading}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  })
+)}
+      </div>
+    </div>
   );
 }

@@ -1,42 +1,523 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* ================== AUTH (Login / Register) ================== */
+
+.auth-layout {
+  min-height: 100vh;
+  padding: 40px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    circle at top,
+    #f9e3ff 0,
+    #f3e1ff 25%,
+    #e5d0ff 55%,
+    #d4b3ff 100%
+  );
+}
+
+/* cardul din mijloc */
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 32px 32px;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(148, 27, 93, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-header {
   text-align: center;
+  margin-bottom: 6px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.auth-title {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #111827;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.auth-subtitle {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: #6b7280;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.card {
-  padding: 2em;
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
 }
 
-.read-the-docs {
-  color: #888;
+.auth-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.auth-input {
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
+  color: #7c3aed;
+  caret-color: #ec4899;
+}
+
+.auth-input::placeholder {
+  color: #a78bfa;
+}
+
+.auth-input:focus {
+  border-color: #9333ea;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2);
+  background-color: #faf5ff;
+}
+
+.auth-button {
+  margin-top: 4px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #ec4899, #a855f7);
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+}
+
+.auth-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(168, 85, 247, 0.4);
+  filter: brightness(1.03);
+}
+
+.auth-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+.auth-footer {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.auth-footer a {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(236, 72, 153, 0.08);
+  color: #9d174d;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ================== CLIENT LAYOUT (după login) ================== */
+
+.client-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(
+    circle at top,
+    #f9e3ff 0,
+    #f3e1ff 25%,
+    #e5d0ff 55%,
+    #d4b3ff 100%
+  );
+}
+
+/* header sus */
+.client-header {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(248, 187, 247, 0.7);
+  box-shadow: 0 10px 26px rgba(148, 163, 184, 0.35);
+  padding: 14px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.client-logo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.client-logo-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.client-logo-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.client-nav {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.client-nav a {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.client-nav a:hover {
+  background-color: rgba(244, 114, 182, 0.15);
+  color: #be185d;
+  transform: translateY(-1px);
+}
+
+.client-logout-btn {
+  margin-left: 16px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #f97373, #ec4899);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(248, 113, 113, 0.35);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+}
+
+.client-logout-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(248, 113, 113, 0.5);
+  filter: brightness(1.05);
+}
+
+/* zona principală */
+.client-main {
+  flex: 1;
+  padding: 40px 24px 56px;
+  display: flex;
+  justify-content: center; /* cardul mare pe mijloc */
+  align-items: center;     /* și vertical */
+}
+
+/* ================== HOME CARD („Welcome, X!”) ================== */
+
+.client-home-card {
+  max-width: 900px;
+  width: 100%;
+  padding: 32px 40px 36px;
+  border-radius: 32px;
+  background: linear-gradient(145deg, #ffffff, #fff7ff);
+  box-shadow: 0 25px 60px rgba(148, 163, 184, 0.4);
+  border: 1px solid rgba(248, 187, 247, 0.9);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* TOT conținutul pe mijloc orizontal */
+  justify-content: center;  /* și vertical în card */
+  text-align: center;
+  gap: 24px;                /* spațiu între titlu și cardurile mici */
+}
+
+.client-home-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.client-home-title {
+  margin: 8px 0 4px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.client-home-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+/* rândul cu Pets / Appointments */
+.client-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center; /* pe mijloc în cardul mare */
+}
+
+/* ================== CARDURI MICI ================== */
+
+.client-stat-card {
+  min-width: 220px;
+  padding: 22px 26px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top left, #fdf2ff, #f5d9ff);
+  box-shadow: 0 18px 45px rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(244, 114, 182, 0.45);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* centru orizontal */
+  justify-content: center;  /* centru vertical */
+  text-align: center;
+
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    border-color 0.18s ease-out;
+}
+
+.client-stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 60px rgba(244, 114, 182, 0.55);
+  border-color: rgba(236, 72, 153, 0.8);
+}
+
+.client-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ec4899;
+}
+
+.client-stat-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+/* ========== CLIENT PAGES (Pets, Appointments etc.) ========== */
+
+.client-page {
+  min-height: calc(100vh - 80px);
+  padding: 40px 24px 56px;
+}
+
+.client-page-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* header My Pets + buton Add */
+.client-page-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.client-page-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-page-add-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #ec4899, #a855f7);
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+}
+
+.client-page-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(236, 72, 153, 0.55);
+  filter: brightness(1.04);
+}
+
+/* card alb/roz folosit pentru form + listă */
+.client-card {
+  border-radius: 26px;
+  padding: 22px 24px;
+  background: linear-gradient(145deg, #ffffff, #fff7ff);
+  box-shadow: 0 20px 56px rgba(180, 83, 166, 0.28);
+  border: 1px solid rgba(248, 187, 247, 0.85);
+}
+
+.client-card-title {
+  margin: 0 0 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* rând cu input-urile în formular */
+.client-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.client-form-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* listă de pets */
+
+.client-pet-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.client-pet-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.client-pet-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.client-pet-meta {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.client-pet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.client-btn-secondary,
+.client-btn-danger {
+  border-radius: 999px;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.client-btn-secondary {
+  background: rgba(129, 140, 248, 0.08);
+  color: #4f46e5;
+}
+
+.client-btn-secondary:hover {
+  background: rgba(129, 140, 248, 0.18);
+}
+
+.client-btn-danger {
+  background: rgba(248, 113, 113, 0.16);
+  color: #b91c1c;
+}
+
+.client-btn-danger:hover {
+  background: rgba(248, 113, 113, 0.3);
+}
+
+/* mesaj de eroare mic, roz */
+.client-error-banner {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.86rem;
+}
+
+/* empty state */
+.client-empty {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+/* ========== LISTA APPOINTMENTS ========== */
+
+.client-appt-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.client-appt-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.client-appt-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.client-appt-meta {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.client-appt-desc {
+  font-size: 0.9rem;
+  color: #4b5563;
 }

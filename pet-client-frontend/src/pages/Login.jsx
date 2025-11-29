@@ -1,12 +1,14 @@
 // src/pages/Login.jsx
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Auth from '../services/auth.js';
+import '../App.css';
 
 export default function Login({ onLogin }) {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [err, setErr] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -14,66 +16,81 @@ export default function Login({ onLogin }) {
     setErr('');
     setLoading(true);
     try {
-      const data = await Auth.login(form); // { id, name, email, phone... }
-      if (onLogin) onLogin(data);
+      const data = await Auth.login(email, password);
+      onLogin?.(data);
       navigate('/home');
     } catch (e) {
       console.error(e);
-      const msg =
-        e?.response?.data ||
-        'Login failed. Check email and password.';
-      setErr(typeof msg === 'string' ? msg : 'Login failed.');
+      setErr(
+        e?.response?.data?.error ||
+          'Login failed. Please check your email and password.'
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '40px auto', color: 'white' }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Email</label>
-          <br />
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            style={{ width: '100%', padding: 8, borderRadius: 8 }}
-            required
-          />
+    <div className="auth-layout">
+      <div className="auth-card">
+        <div className="auth-header">
+          <div className="auth-badge">
+            🐾 Pet Care Client
+          </div>
+          <h1 className="auth-title">Login</h1>
+          <p className="auth-subtitle">
+            Sign in to manage your pets and appointments.
+          </p>
         </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Password</label>
-          <br />
-          <input
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            style={{ width: '100%', padding: 8, borderRadius: 8 }}
-            required
-          />
-        </div>
-        {err && <div style={{ color: 'salmon', marginBottom: 8 }}>{err}</div>}
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: '8px 16px',
-            borderRadius: 8,
-            border: 'none',
-            background: '#3b82f6',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          {loading ? 'Logging in…' : 'Login'}
-        </button>
-      </form>
 
-      <p style={{ marginTop: 16 }}>
-        Don&apos;t have an account? <Link to="/register">Register</Link>
-      </p>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
+            <input
+              className="auth-input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="auth-field">
+            <label className="auth-label">Password</label>
+            <input
+              className="auth-input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {err && (
+            <div
+              style={{
+                fontSize: '0.85rem',
+                color: '#b91c1c',
+                background: '#fee2e2',
+                borderRadius: 10,
+                padding: '8px 10px',
+              }}
+            >
+              {err}
+            </div>
+          )}
+
+          <button className="auth-button" type="submit" disabled={loading}>
+            {loading ? 'Logging in…' : 'Login'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          Don&apos;t have an account? <Link to="/register">Register</Link>
+        </div>
+      </div>
     </div>
   );
 }

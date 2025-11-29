@@ -34,39 +34,86 @@ export default function Home({ owner }) {
   }, [owner]);
 
   return (
-    <div>
-      <h2 style={{ fontSize: 26, marginBottom: 8 }}>
-        Welcome, {owner?.name || 'client'}! 🐾
-      </h2>
-      <p style={{ color: '#9ca3af', marginBottom: 24 }}>
-        Here you can manage your pets and veterinary appointments.
-      </p>
-
-      {stats.loading ? (
-        <div>Loading your data…</div>
-      ) : (
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <StatCard label="Pets" value={stats.pets} />
-          <StatCard label="Appointments" value={stats.appointments} />
+    <div
+      style={{
+        minHeight: 'calc(100vh - 80px)',      // sub header
+        display: 'flex',
+        justifyContent: 'center',             // cardul pe mijloc pe orizontală
+        alignItems: 'flex-start',             // ⬅️ NU mai îl centram vertical
+        padding: '40px 16px 100px',           // mai mult padding jos pt. poze
+        background:
+          'radial-gradient(circle at top left, #fee2ff 0, #e0e7ff 38%, #fdf2ff 100%)',
+      }}
+    >
+      {/* card central, totul centrat în el */}
+      <div
+        style={{
+          width: 'min(900px, 100%)',
+          borderRadius: 32,
+          padding: '32px 40px 36px',
+          background: '#ffffff',
+          boxShadow: '0 26px 70px rgba(180, 83, 166, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          gap: 24,
+          marginTop: 40,                      // mic spațiu sub header
+        }}
+      >
+        {/* badge + text de întâmpinare */}
+        <div className="auth-badge">
+          <span>🐾</span>
+          <span>Pet Care Client</span>
         </div>
-      )}
+
+        <div>
+          <h2
+            style={{
+              fontSize: 28,
+              margin: '8px 0 4px',
+              color: '#111827',
+            }}
+          >
+            Welcome, {owner?.name || 'client'}! 🐾
+          </h2>
+
+          <p
+            style={{
+              margin: 0,
+              color: '#6b7280',
+              fontSize: 14,
+            }}
+          >
+            Here you can manage your pets and veterinary appointments.
+          </p>
+        </div>
+
+        {stats.loading ? (
+          <div style={{ color: '#6b7280' }}>Loading your data…</div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              gap: 24,
+              flexWrap: 'wrap',
+              justifyContent: 'center',  // cardurile mici pe mijloc
+            }}
+          >
+            <StatCard label="Pets" value={stats.pets} />
+            <StatCard label="Appointments" value={stats.appointments} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function StatCard({ label, value }) {
   return (
-    <div
-      style={{
-        minWidth: 180,
-        padding: 16,
-        borderRadius: 16,
-        background: '#1f2937',
-        boxShadow: '0 10px 25px rgba(0,0,0,.35)',
-      }}
-    >
-      <div style={{ fontSize: 32, fontWeight: 700 }}>{value}</div>
-      <div style={{ color: '#9ca3af' }}>{label}</div>
+    <div className="client-stat-card">
+      <div className="client-stat-value">{value}</div>
+      <div className="client-stat-label">{label}</div>
     </div>
   );
 }

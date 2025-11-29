@@ -1,43 +1,45 @@
 // src/pages/ClientPets.jsx
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Pets from '../services/pets.js';
 
 export default function ClientPets({ owner }) {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
 
-  const [form, setForm] = useState({
-    name: '',
-    species: '',
-    breed: '',
-  });
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: '', species: '', breed: '' });
+  const [error, setError] = useState('');
 
-  const formRef = useRef(null);
-
-  useEffect(() => {
-    if (!owner?.id) return;
-    loadPets();
-  }, [owner]);
-
+  // încarcă pets pentru owner-ul logat
   async function loadPets() {
+    if (!owner?.id) return;
     setLoading(true);
-    setErr('');
     try {
       const data = await Pets.byOwner(owner.id);
       setPets(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-      setErr('Could not load your pets.');
+    } catch (err) {
+      console.error('loadPets error', err);
+      setPets([]);
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    loadPets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner?.id]);
+
   function resetForm() {
     setForm({ name: '', species: '', breed: '' });
     setEditingId(null);
+    setError('');
+  }
+
+  function startAdd() {
+    resetForm();
+    setShowForm(true);
   }
 
   function startEdit(p) {
@@ -47,226 +49,217 @@ export default function ClientPets({ owner }) {
       breed: p.breed || '',
     });
     setEditingId(p.id);
-
-    // scroll la formular
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    setShowForm(true);
+    setError('');
   }
 
-  async function onSubmit(e) {
+  function validate() {
+    if (!form.name.trim()) return 'Name is required.';
+    if (!form.species.trim()) return 'Species is required.';
+    return '';
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.name.trim()) {
-      setErr('Name is required.');
+    setError('');
+
+    if (!owner?.id) {
+      setError('Internal error: no logged in owner.');
       return;
     }
 
+    const validationMsg = validate();
+    if (validationMsg) {
+      setError(validationMsg);
+      return;
+    }
+
+    const payload = {
+      name: form.name.trim(),
+      species: form.species.trim() || undefined,
+      breed: form.breed.trim() || undefined,
+      // trimitem și owner-ul la fel ca în admin-frontend
+      owner: { id: owner.id },
+    };
+
     setLoading(true);
-    setErr('');
     try {
       if (editingId) {
-        await Pets.update(editingId, owner.id, form);
+        await Pets.update(editingId, payload);
       } else {
-        await Pets.createForOwner(owner.id, form);
+        await Pets.create(payload);
       }
-      resetForm();
+
       await loadPets();
-    } catch (e) {
-      console.error(e);
-      setErr('Saving pet failed.');
+      resetForm();
+      setShowForm(false);
+    } catch (err) {
+      console.error('save pet error', err?.response || err);
+
+      // extragem un mesaj cât mai clar de la backend / axios
+      const serverMsg =
+        err?.response?.data?.message ??
+        err?.response?.data?.error ??
+        (typeof err?.response?.data === 'string'
+          ? err.response.data
+          : null) ??
+        err?.message;
+
+      setError(serverMsg || 'Could not save pet. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function onDelete(id) {
+  async function handleDelete(id) {
     if (!window.confirm('Delete this pet?')) return;
     setLoading(true);
-    setErr('');
     try {
       await Pets.remove(id);
       await loadPets();
-    } catch (e) {
-      console.error(e);
-      setErr('Could not delete pet (maybe it has appointments).');
+    } catch (err) {
+      console.error('delete pet error', err?.response || err);
+      alert('Could not delete pet.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <section>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: 16,
-          alignItems: 'center',
-        }}
-      >
-        <h2>My Pets 🐶</h2>
-        <button
-          onClick={() => {
-            resetForm();
-            setTimeout(() => {
-              formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 50);
-          }}
-          style={{
-            padding: '6px 12px',
-            borderRadius: 999,
-            border: 'none',
-            background: '#f472b6',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          + Add pet
-        </button>
-      </div>
+    <div className="client-page">
+      <div className="client-page-inner">
+        {/* titlu + buton Add */}
+        <div className="client-page-header-row">
+          <h2 className="client-page-title">
+            My Pets <span>🐶</span>
+          </h2>
+          <button
+            type="button"
+            className="client-page-add-btn"
+            onClick={startAdd}
+          >
+            + Add pet
+          </button>
+        </div>
 
-      {/* formular */}
-      <div
-        ref={formRef}
-        style={{
-          marginBottom: 24,
-          padding: 16,
-          borderRadius: 16,
-          background: '#1f2937',
-        }}
-      >
-        <h3>{editingId ? 'Edit pet' : 'Add pet'}</h3>
-        <form onSubmit={onSubmit}>
-          <div style={{ marginBottom: 12 }}>
-            <label>Name *</label>
-            <br />
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              style={{ width: '100%', padding: 8, borderRadius: 8 }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 160 }}>
-              <label>Species</label>
-              <br />
-              <input
-                value={form.species}
-                onChange={(e) => setForm({ ...form, species: e.target.value })}
-                style={{ width: '100%', padding: 8, borderRadius: 8 }}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 160 }}>
-              <label>Breed</label>
-              <br />
-              <input
-                value={form.breed}
-                onChange={(e) => setForm({ ...form, breed: e.target.value })}
-                style={{ width: '100%', padding: 8, borderRadius: 8 }}
-              />
-            </div>
-          </div>
+        {/* card cu formular Add/Edit */}
+        {showForm && (
+          <div className="client-card">
+            <h3 className="client-card-title">
+              {editingId ? 'Edit pet' : 'Add pet'}
+            </h3>
 
-          {err && (
-            <div style={{ color: 'salmon', marginTop: 8, marginBottom: 8 }}>{err}</div>
-          )}
+            {error && <div className="client-error-banner">{error}</div>}
 
-          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '8px 14px',
-                borderRadius: 8,
-                border: 'none',
-                background: '#3b82f6',
-                color: 'white',
-                cursor: 'pointer',
-              }}
-            >
-              {editingId ? 'Save changes' : 'Create'}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#6b7280',
-                  color: 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* listă */}
-      {loading && pets.length === 0 ? (
-        <div>Loading…</div>
-      ) : pets.length === 0 ? (
-        <div>You don&apos;t have any pets yet.</div>
-      ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 16,
-          }}
-        >
-          {pets.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                background: '#111827',
-                border: '1px solid #374151',
-              }}
-            >
-              <h3 style={{ marginTop: 0 }}>{p.name}</h3>
-              <div style={{ color: '#9ca3af', marginBottom: 8 }}>
-                {p.species || 'Unknown species'}
-                {p.breed ? ` · ${p.breed}` : ''}
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="auth-field">
+                <label className="auth-label">Name *</label>
+                <input
+                  className="auth-input"
+                  type="text"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
+                  required
+                />
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+
+              <div className="client-form-row">
+                <div className="auth-field client-form-field">
+                  <label className="auth-label">Species *</label>
+                  <input
+                    className="auth-input"
+                    type="text"
+                    value={form.species}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, species: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="auth-field client-form-field">
+                  <label className="auth-label">Breed</label>
+                  <input
+                    className="auth-input"
+                    type="text"
+                    value={form.breed}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, breed: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                 <button
+                  type="submit"
+                  className="auth-button"
+                  disabled={loading}
+                >
+                  {editingId ? 'Save changes' : 'Create'}
+                </button>
+                {editingId || showForm ? (
+                  <button
+                    type="button"
+                    className="client-btn-secondary"
+                    onClick={() => {
+                      resetForm();
+                      setShowForm(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* listă de pets */}
+        {loading && !pets.length ? (
+          <div className="client-card">Loading…</div>
+        ) : pets.length === 0 ? (
+          <div className="client-card client-empty">
+            You don&apos;t have any pets yet. Click <b>“Add pet”</b> to create
+            one!
+          </div>
+        ) : (
+          pets.map((p) => (
+            <div key={p.id} className="client-card client-pet-card">
+              <div className="client-pet-main">
+                <div className="client-pet-name">
+                  {p.name || 'Unnamed pet'}
+                </div>
+                <div className="client-pet-meta">
+                  {p.species || 'Unknown species'}
+                  {p.breed ? ` · ${p.breed}` : ''}
+                </div>
+              </div>
+
+              <div className="client-pet-actions">
+                <button
+                  type="button"
+                  className="client-btn-secondary"
                   onClick={() => startEdit(p)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#4b5563',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
+                  disabled={loading}
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => onDelete(p.id)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#ef4444',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
+                  type="button"
+                  className="client-btn-danger"
+                  onClick={() => handleDelete(p.id)}
+                  disabled={loading}
                 >
                   Delete
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </section>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
