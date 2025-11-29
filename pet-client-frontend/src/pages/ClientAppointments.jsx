@@ -14,6 +14,21 @@ export default function ClientAppointments({ owner }) {
   const [description, setDescription] = useState("");
 
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+
+  // 🔔 toast (notificare)
+  const [toast, setToast] = useState(null); // { message, type: 'success' | 'error' }
+
+  // auto-hide toast după 3 secunde
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  function showToast(message, type = "success") {
+    setToast({ message, type });
+  }
 
   // încărcăm pets + appointments pentru owner-ul logat
   useEffect(() => {
@@ -47,6 +62,7 @@ export default function ClientAppointments({ owner }) {
     setPetId("");
     setDescription("");
     setError("");
+    setEditingId(null);
   }
 
   // nu permitem programări în trecut
@@ -83,7 +99,7 @@ export default function ClientAppointments({ owner }) {
     }
 
     const payload = {
-      // Spring LocalDateTime – trimitem "YYYY-MM-DDTHH:mm"
+      // Spring LocalDateTime – "YYYY-MM-DDTHH:mm"
       dateTime: `${date}T${time}`,
       description: description.trim() || "Veterinary appointment",
       owner: { id: owner.id },
@@ -92,7 +108,14 @@ export default function ClientAppointments({ owner }) {
 
     setLoading(true);
     try {
-      await Appointments.create(payload);
+      if (editingId) {
+        await Appointments.update(editingId, payload);
+        showToast("Appointment updated successfully.", "success");
+      } else {
+        await Appointments.create(payload);
+        showToast("Appointment created successfully.", "success");
+      }
+
       const apptRes = await Appointments.byOwner(owner.id).catch(() => []);
       setAppointments(Array.isArray(apptRes) ? apptRes : []);
       resetForm();
@@ -102,6 +125,7 @@ export default function ClientAppointments({ owner }) {
         err?.response?.data?.error ||
           "Failed to save appointment. Please check the fields."
       );
+      showToast("Failed to save appointment.", "error");
     } finally {
       setLoading(false);
     }
@@ -115,20 +139,71 @@ export default function ClientAppointments({ owner }) {
       await Appointments.remove(id);
       const apptRes = await Appointments.byOwner(owner.id).catch(() => []);
       setAppointments(Array.isArray(apptRes) ? apptRes : []);
+      showToast("Appointment deleted.", "success");
     } catch (err) {
       console.error("delete appointment error", err);
       alert("Could not delete appointment.");
+      showToast("Failed to delete appointment.", "error");
     } finally {
       setLoading(false);
     }
   }
 
-  // pentru atributul min la input[type=date]
+  // pornește Edit pentru o programare
+  function startEdit(appt) {
+    let d = "";
+    let t = "";
+    if (appt.dateTime) {
+      const raw = String(appt.dateTime); // ex: "2025-12-10T10:48:00"
+      const [ds, ts] = raw.split("T");
+      d = ds || "";
+      if (ts) t = ts.slice(0, 5); // HH:mm
+    }
+
+    // nu avem petId în DTO, doar petName => căutăm după nume în lista de pets
+    const petForAppt = appt.petName
+      ? pets.find((p) => p.name === appt.petName)
+      : null;
+
+    const pidStr = petForAppt ? String(petForAppt.id) : "";
+
+    setDate(d);
+    setTime(t);
+    setPetId(pidStr);
+    setDescription(appt.description || "");
+    setEditingId(appt.id || null);
+    setError("");
+
+    document
+      .getElementById("appointment-form")
+      ?.scrollIntoView({ behavior: "smooth" });
+  }
+
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="client-page">
       <div className="client-page-inner">
+        {/* 🔔 Toast în colțul din dreapta sus */}
+        {toast && (
+          <div
+            className={`client-toast ${
+              toast.type === "error"
+                ? "client-toast-error"
+                : "client-toast-success"
+            }`}
+          >
+            <span>{toast.message}</span>
+            <button
+              type="button"
+              className="client-toast-close"
+              onClick={() => setToast(null)}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* header My Appointments + buton "New appointment" */}
         <div className="client-page-header-row">
           <h2 className="client-page-title">
@@ -139,6 +214,7 @@ export default function ClientAppointments({ owner }) {
             type="button"
             className="client-page-add-btn"
             onClick={() => {
+              resetForm();
               document
                 .getElementById("appointment-form")
                 ?.scrollIntoView({ behavior: "smooth" });
@@ -148,9 +224,11 @@ export default function ClientAppointments({ owner }) {
           </button>
         </div>
 
-        {/* card cu formularul de creare */}
+        {/* card cu formularul de creare / editare */}
         <div id="appointment-form" className="client-card">
-          <h3 className="client-card-title">New appointment</h3>
+          <h3 className="client-card-title">
+            {editingId ? "Edit appointment" : "New appointment"}
+          </h3>
 
           {error && <div className="client-error-banner">{error}</div>}
 
@@ -209,7 +287,7 @@ export default function ClientAppointments({ owner }) {
 
             <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
               <button className="auth-button" type="submit" disabled={loading}>
-                Create
+                {editingId ? "Save changes" : "Create"}
               </button>
               <button
                 type="button"
@@ -234,43 +312,14 @@ export default function ClientAppointments({ owner }) {
           appointments.map((a) => {
             const dateObj = a.dateTime ? new Date(a.dateTime) : null;
 
-            // încercăm să deducem id-ul pet-ului, indiferent cum vine din backend
-            const apptPetIdRaw =
-              (a.pet && typeof a.pet === "object" && a.pet.id) ??
-              (typeof a.pet === "number" || typeof a.pet === "string"
-                ? a.pet
-                : undefined) ??
-              a.petId ??
-              a.pet_id ??
-              a.petID ??
-              (a.pet && typeof a.pet === "object" && a.pet.petId) ??
-              (a.pet && typeof a.pet === "object" && a.pet.pet_id);
+            // avem petName direct din DTO
+            const petFromList = a.petName
+              ? pets.find((p) => p.name === a.petName)
+              : null;
 
-            // căutăm pet-ul în lista de pets a owner-ului
-            const pet =
-              apptPetIdRaw != null
-                ? pets.find((p) => String(p.id) === String(apptPetIdRaw))
-                : undefined;
-
-            // nume / specie / rasă – folosim tot ce găsim
-            const petName =
-              pet?.name ||
-              (a.pet && typeof a.pet === "object" && a.pet.name) ||
-              a.petName ||
-              a.pet_name ||
-              "Pet";
-
-            const petSpecies =
-              pet?.species ||
-              (a.pet && typeof a.pet === "object" && a.pet.species) ||
-              a.petSpecies ||
-              a.pet_species;
-
-            const petBreed =
-              pet?.breed ||
-              (a.pet && typeof a.pet === "object" && a.pet.breed) ||
-              a.petBreed ||
-              a.pet_breed;
+            const petName = a.petName || petFromList?.name || "Pet";
+            const petSpecies = petFromList?.species;
+            const petBreed = petFromList?.breed;
 
             return (
               <div key={a.id} className="client-card client-appt-card">
@@ -293,6 +342,14 @@ export default function ClientAppointments({ owner }) {
                 </div>
 
                 <div className="client-pet-actions">
+                  <button
+                    type="button"
+                    className="client-btn-secondary"
+                    onClick={() => startEdit(a)}
+                    disabled={loading}
+                  >
+                    Edit
+                  </button>
                   <button
                     type="button"
                     className="client-btn-danger"
