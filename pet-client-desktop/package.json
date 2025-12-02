@@ -1,0 +1,14 @@
+{
+  "name": "pet-client-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-client": "cd ../pet-client-frontend && npm install && npm run build",
+    "start-dev": "cd ../pet-client-frontend && npm install && npm run dev & electron ."
+  },
+  "devDependencies": {
+    "electron": "^32.0.0"
+  }
+}
