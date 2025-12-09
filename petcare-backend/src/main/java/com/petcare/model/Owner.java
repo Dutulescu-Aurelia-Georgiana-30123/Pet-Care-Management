@@ -13,7 +13,7 @@ import java.util.List;
 @Table(
         name = "owners",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "email") // email trebuie să fie unic
+                @UniqueConstraint(columnNames = "email")
         }
 )
 public class Owner {
@@ -34,7 +34,7 @@ public class Owner {
     @Email(message = "Adresa de email nu este validă.")
     private String email;
 
-    // 👇 nou: parolă (fără @NotBlank ca să nu stricăm ownerii existenți)
+
     private String password;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -49,7 +49,7 @@ public class Owner {
         this.email = email;
     }
 
-    // --- Getteri și setteri ---
+    // getteri, setteri
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

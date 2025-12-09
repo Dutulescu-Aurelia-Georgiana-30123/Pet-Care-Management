@@ -8,11 +8,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai")
-// AICI schimbăm:
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "http://localhost:5174"   // adăugăm și 5174
-        // sau poți pune "*", dacă nu te stresează securitatea la proiectul ăsta:
+        "http://localhost:5174"
         // @CrossOrigin(origins = "*")
 })
 public class AiController {

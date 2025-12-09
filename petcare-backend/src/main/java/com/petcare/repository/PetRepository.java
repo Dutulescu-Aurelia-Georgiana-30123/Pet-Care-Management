@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface PetRepository extends JpaRepository<Pet, Long> {
 
-    // Custom query: găsește toate animalele unui proprietar
+    // cauta toate animalele unui owner
     List<Pet> findByOwnerId(Long ownerId);
 }

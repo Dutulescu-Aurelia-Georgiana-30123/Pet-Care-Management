@@ -39,7 +39,7 @@ public class Appointment {
         this.pet = pet;
     }
 
-    // --- Getteri și setteri ---
+    //Getteri,setteri
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

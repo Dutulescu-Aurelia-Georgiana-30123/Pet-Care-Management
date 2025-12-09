@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    // Custom query: caută toate programările pentru un anumit owner
+    //caută toate programările pentru un anumit owner
     List<Appointment> findByPetOwnerId(Long ownerId);
     void deleteByPetId(Long petId);
 }

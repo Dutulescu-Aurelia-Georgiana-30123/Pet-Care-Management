@@ -16,7 +16,6 @@ public class ChatbotService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // folosim v1 și modelul gemini-1.5-flash
     private static final String GEMINI_URL =
             "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=%s";
 
@@ -55,7 +54,6 @@ public class ChatbotService {
             ResponseEntity<String> response =
                     restTemplate.postForEntity(url, entity, String.class);
 
-            // dacă Google răspunde cu eroare 4xx/5xx, vrem să vedem mesajul
             if (!response.getStatusCode().is2xxSuccessful()) {
                 return "Gemini a răspuns cu eroare: " + response.getStatusCode().value()
                         + " - " + response.getBody();

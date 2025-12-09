@@ -39,7 +39,7 @@ public class PetController {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
-    // ✅ GET - toate animalele
+    // GET - toate animalele
     @GetMapping
     public List<PetDTO> getAllPets() {
         return petRepository.findAll().stream()
@@ -47,28 +47,25 @@ public class PetController {
                 .collect(Collectors.toList());
     }
 
-    // ✅ GET - un animal după id
+   /* // GET - un animal după id
     @GetMapping("/{id}")
     public PetDTO getPetById(@PathVariable Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pet not found with id: " + id));
         return convertToDTO(pet);
-    }
+    }*/
 
-    // ✅ POST - adaugă un animal nou
+    //POST - adaugă un animal nou
     @PostMapping
     public PetDTO createPet(@Valid @RequestBody Pet pet) {
         if (pet.getOwner() == null || pet.getOwner().getId() == null) {
             throw new ValidationException("Owner must be specified for the pet.");
         }
-        // Salvează pet-ul
         Pet savedPet = petRepository.save(pet);
 
-        // Încarcă explicit owner-ul complet din baza de date
         Owner owner = ownerRepository.findById(pet.getOwner().getId()).orElseThrow(() -> new ValidationException("Owner not found for ID: " + pet.getOwner().getId()));
         savedPet.setOwner(owner);
 
-        // Transformă în DTO
         PetDTO dto = new PetDTO();
         dto.setId(savedPet.getId());
         dto.setName(savedPet.getName());
@@ -78,7 +75,7 @@ public class PetController {
         return dto;
     }
 
-    // ✅ PUT - actualizează un animal existent
+    // PUT-actualizează un animal existent
     @PutMapping("/{id}")
     public PetDTO updatePet(@PathVariable Long id, @Valid @RequestBody Pet petDetails) {
         Pet pet = petRepository.findById(id)
@@ -97,7 +94,7 @@ public class PetController {
         return convertToDTO(updated);
     }
 
-    // ✅ DELETE - șterge un animal
+    //DELETE-șterge un animal
     @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePet(@PathVariable Long id) {
@@ -107,16 +104,16 @@ public class PetController {
                     .body("Pet not found.");
         }
 
-        // 👇 1. ștergem toate programările acestui pet
+        // ștergem toate programările acestui pet
         appointmentRepository.deleteByPetId(id);
 
-        // 👇 2. ștergem pet-ul
+        // ștergem pet-ul
         petRepository.deleteById(id);
 
         return ResponseEntity.ok("Pet deleted successfully.");
     }
 
-    // 🔍 Custom Query - toate animalele unui anumit proprietar
+    // toate animalele unui anumit proprietar
     @GetMapping("/owner/{ownerId}")
     public List<PetDTO> getPetsByOwnerId(@PathVariable Long ownerId) {
         List<Pet> pets = petRepository.findByOwnerId(ownerId);
@@ -126,7 +123,7 @@ public class PetController {
     }
 
 
-    // 🔄 Conversie Pet → PetDTO (metodă auxiliară)
+    //Conversie Pet → PetDTO
     private PetDTO convertToDTO(Pet pet) {
         return new PetDTO(
                 pet.getId(),

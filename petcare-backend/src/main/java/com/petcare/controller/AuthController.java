@@ -25,7 +25,7 @@ public class AuthController {
         this.ownerRepository = ownerRepository;
     }
 
-    // ------------- REGISTER -------------
+    // register
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
 
@@ -46,7 +46,7 @@ public class AuthController {
         o.setName(req.getName());
         o.setPhone(req.getPhone());
         o.setEmail(req.getEmail());
-        o.setPassword(req.getPassword()); // pentru proiect lăsăm plain-text
+        o.setPassword(req.getPassword());
 
         Owner saved = ownerRepository.save(o);
 
@@ -63,13 +63,12 @@ public class AuthController {
         return ResponseEntity.ok(dto);
     }
 
-    // ------------- LOGIN -------------
+    // login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Optional<Owner> opt = ownerRepository.findByEmail(req.getEmail());
 
         if (opt.isEmpty()) {
-            // nu dăm mesaj diferit pentru mail/parolă ca să nu "dezvăluim" ce email există
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 

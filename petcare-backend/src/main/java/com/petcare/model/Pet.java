@@ -30,11 +30,6 @@ public class Pet {
     @NotNull(message = "Owner must be provided")
     private Owner owner;
 
-    // optional: appointments or medical records (le adăugăm ulterior)
-    // @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL)
-    // @JsonIgnore
-    // private List<Appointment> appointments = new ArrayList<>();
-
     public Pet() {}
 
     public Pet(String name, String species, String breed) {
@@ -43,7 +38,7 @@ public class Pet {
         this.breed = breed;
     }
 
-    // getters & setters
+    // getter, setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

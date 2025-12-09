@@ -50,7 +50,7 @@ public class AppointmentController {
     @PostMapping
     public AppointmentDTO createAppointment(@Valid @RequestBody Appointment appointment) {
 
-        // 🔹 Validări de bază
+        // Validări de bază
         if (appointment.getDateTime() == null) {
             throw new ValidationException("Appointment date and time must be specified.");
         }
@@ -61,24 +61,24 @@ public class AppointmentController {
             throw new ValidationException("Appointment description is required.");
         }
 
-        // 🔹 Verifică existența ownerului
+        // Verifică existența ownerului
         if (appointment.getOwner() == null || appointment.getOwner().getId() == null) {
             throw new ValidationException("Owner must be specified for the appointment.");
         }
 
-        // 🔹 Verifică existența animalului
+        // Verifică existența animalului
         if (appointment.getPet() == null || appointment.getPet().getId() == null) {
             throw new ValidationException("Pet must be specified for the appointment.");
         }
 
-        // 🔹 Caută ownerul și pet-ul în baza de date
+        // Caută ownerul și pet-ul în baza de date
         var owner = ownerRepository.findById(appointment.getOwner().getId())
                 .orElseThrow(() -> new ValidationException("Owner not found for ID: " + appointment.getOwner().getId()));
 
         var pet = petRepository.findById(appointment.getPet().getId())
                 .orElseThrow(() -> new ValidationException("Pet not found for ID: " + appointment.getPet().getId()));
 
-        // 🔹 Asociază entitățile verificate
+        // Asociază entitățile verificate
         appointment.setOwner(owner);
         appointment.setPet(pet);
 
@@ -149,7 +149,7 @@ public class AppointmentController {
     }
 
 
-    // ✅ Custom query - toate programările pentru un anumit owner
+    // toate programările pentru un anumit owner
     @GetMapping("/owner/{ownerId}")
     public List<AppointmentDTO> getAppointmentsByOwner(@PathVariable Long ownerId) {
         return appointmentRepository.findByPetOwnerId(ownerId).stream()
