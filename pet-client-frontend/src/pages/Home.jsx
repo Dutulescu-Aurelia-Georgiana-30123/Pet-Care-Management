@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useEffect, useState } from 'react';
 import Pets from '../services/pets.js';
 import Appointments from '../services/appointments.js';
@@ -11,7 +10,7 @@ export default function Home({ owner }) {
     loading: true,
   });
 
-  // 🔹 imaginile din /public
+  // imaginile din /public
   const galleryImages = [
     '/poza%201.jpg',
     '/poza%202.jpg',
@@ -159,7 +158,7 @@ export default function Home({ owner }) {
               color: '#111827',
             }}
           >
-            Asistent veterinar (AI)
+            Veterinary Assistant (AI)
           </h3>
           <p
             style={{
@@ -168,9 +167,9 @@ export default function Home({ owner }) {
               color: '#6b7280',
             }}
           >
-            Scrie simptomele animalului tău, iar AI-ul îți va oferi o posibilă
-            explicație și recomandări generale. Nu înlocuiește un consult
-            veterinar!
+            Write down your pet's symptoms and the Ai will provide you 
+            with a possible explanation and general recommendations. 
+            It doesn't replace a veterinary consultation!!
           </p>
 
           {/* componenta ta de AI */}

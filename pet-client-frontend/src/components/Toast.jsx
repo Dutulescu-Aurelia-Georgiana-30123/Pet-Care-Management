@@ -1,4 +1,3 @@
-// src/components/Toast.jsx
 export default function Toast({ toast, onClose }) {
   if (!toast) return null;
 

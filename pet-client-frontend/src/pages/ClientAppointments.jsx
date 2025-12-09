@@ -1,4 +1,3 @@
-// src/pages/ClientAppointments.jsx
 import { useEffect, useState } from "react";
 import Appointments from "../services/appointments.js";
 import Pets from "../services/pets.js";
@@ -16,10 +15,9 @@ export default function ClientAppointments({ owner }) {
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
 
-  // 🔔 toast (notificare)
+  // toast (notificare)
   const [toast, setToast] = useState(null); // { message, type: 'success' | 'error' }
 
-  // auto-hide toast după 3 secunde
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(null), 3000);
@@ -160,7 +158,7 @@ export default function ClientAppointments({ owner }) {
       if (ts) t = ts.slice(0, 5); // HH:mm
     }
 
-    // nu avem petId în DTO, doar petName => căutăm după nume în lista de pets
+    // căutăm după nume în lista de pets
     const petForAppt = appt.petName
       ? pets.find((p) => p.name === appt.petName)
       : null;
@@ -184,7 +182,7 @@ export default function ClientAppointments({ owner }) {
   return (
     <div className="client-page">
       <div className="client-page-inner">
-        {/* 🔔 Toast în colțul din dreapta sus */}
+        {/* Toast în colțul din dreapta sus */}
         {toast && (
           <div
             className={`client-toast ${

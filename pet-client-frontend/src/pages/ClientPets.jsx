@@ -1,4 +1,3 @@
-// src/pages/ClientPets.jsx
 import { useEffect, useState } from 'react';
 import Pets from '../services/pets.js';
 

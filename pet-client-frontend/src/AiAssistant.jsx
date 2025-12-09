@@ -1,4 +1,3 @@
-// src/AiAssistant.jsx
 import React, { useState } from "react";
 
 function AiAssistant() {
@@ -11,7 +10,7 @@ function AiAssistant() {
     e.preventDefault();
 
     if (!symptoms.trim()) {
-      setError("Te rog descrie simptomele animalului.");
+      setError("Please describe the symptoms of your pet.");
       return;
     }
 
@@ -45,17 +44,18 @@ function AiAssistant() {
 
   return (
     <div className="ai-card">
-      <h2>Asistent veterinar (AI)</h2>
+      <h2>Veterinary Assistant (AI)</h2>
       <p className="ai-description">
-        Scrie simptomele animalului tău, iar asistentul AI îți oferă o explicație
-        posibilă și recomandări generale. Nu înlocuiește un consult veterinar!
+        Write down your pet's symptoms and the Ai will provide you 
+            with a possible explanation and general recommendations. 
+            It doesn't replace a veterinary consultation!!
       </p>
 
       <form onSubmit={handleSubmit}>
         <textarea
           value={symptoms}
           onChange={(e) => setSymptoms(e.target.value)}
-          placeholder="Ex: Câinele meu nu mănâncă, este foarte obosit și a vomat de două ori în ultimele 24 de ore."
+          placeholder="Ex: Cainele meu nu mananca si este foarte obosit."
           rows={5}
           style={{ width: "100%", resize: "vertical", padding: "8px" }}
         />
@@ -65,7 +65,7 @@ function AiAssistant() {
           disabled={loading}
           style={{ marginTop: "10px", padding: "8px 16px", cursor: "pointer" }}
         >
-          {loading ? "Analizez simptomele..." : "Trimite la AI"}
+          {loading ? "Analyze the symptoms..." : "Trimite la AI"}
         </button>
       </form>
 

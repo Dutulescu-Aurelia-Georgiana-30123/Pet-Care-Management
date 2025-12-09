@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Auth from '../services/auth.js';
@@ -12,23 +11,20 @@ export default function Login({ onLogin }) {
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setErr('');
-    setLoading(true);
-    try {
-      const data = await Auth.login(email, password);
-      onLogin?.(data);
-      navigate('/home');
-    } catch (e) {
-      console.error(e);
-      setErr(
-        e?.response?.data?.error ||
-          'Login failed. Please check your email and password.'
-      );
-    } finally {
-      setLoading(false);
-    }
+  e.preventDefault();               // ca să nu trimită form clasic
+
+  setError('');
+  try {
+    const data = await Auth.login(email, password);
+    onLogin(data);                 
+  } catch (err) {
+    const msg =
+      err?.response?.data?.error ||
+      err?.response?.data ||
+      'Login failed.';
+    setError(String(msg));
   }
+}
 
   return (
     <div className="auth-layout">
