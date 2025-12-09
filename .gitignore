@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+node_modules/
+
+# nu urcăm configurările locale cu parole/chei
+petcare-backend/src/main/resources/application.properties
+

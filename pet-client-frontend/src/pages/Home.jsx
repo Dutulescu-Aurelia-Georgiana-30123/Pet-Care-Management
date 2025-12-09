@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Pets from '../services/pets.js';
 import Appointments from '../services/appointments.js';
+import AiAssistant from "../AiAssistant";
 
 export default function Home({ owner }) {
   const [stats, setStats] = useState({
@@ -70,7 +71,7 @@ export default function Home({ owner }) {
           'radial-gradient(circle at top left, #fee2ff 0, #e0e7ff 38%, #fdf2ff 100%)',
       }}
     >
-      {/* coloană centrală: cardul alb + galeria sub el */}
+      {/* coloană centrală: cardul alb + AI + galeria sub ele */}
       <div
         style={{
           width: 'min(1000px, 100%)',
@@ -81,7 +82,7 @@ export default function Home({ owner }) {
           gap: 32,
         }}
       >
-        {/* CARDUL ALB: doar welcome + statistici */}
+        {/* CARDUL ALB: welcome + statistici */}
         <div
           className="client-home-card"
           style={{
@@ -137,7 +138,46 @@ export default function Home({ owner }) {
           )}
         </div>
 
-        {/* GALERIA – SUB cardul alb */}
+        {/* CARD AI ASSISTANT */}
+        <div
+          style={{
+            maxWidth: '900px',
+            width: '100%',
+            margin: '0 auto',
+            borderRadius: 32,
+            padding: '24px 24px 28px',
+            background: '#ffffff',
+            boxShadow: '0 24px 60px rgba(148, 163, 184, 0.40)',
+            border: '1px solid rgba(129, 140, 248, 0.4)',
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 8px',
+              fontSize: 20,
+              fontWeight: 700,
+              color: '#111827',
+            }}
+          >
+            Asistent veterinar (AI)
+          </h3>
+          <p
+            style={{
+              margin: '0 0 16px',
+              fontSize: 14,
+              color: '#6b7280',
+            }}
+          >
+            Scrie simptomele animalului tău, iar AI-ul îți va oferi o posibilă
+            explicație și recomandări generale. Nu înlocuiește un consult
+            veterinar!
+          </p>
+
+          {/* componenta ta de AI */}
+          <AiAssistant />
+        </div>
+
+        {/* GALERIA – SUB cardul AI */}
         <div
           style={{
             maxWidth: '900px',
