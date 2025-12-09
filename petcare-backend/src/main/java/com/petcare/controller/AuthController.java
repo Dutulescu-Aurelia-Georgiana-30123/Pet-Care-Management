@@ -25,7 +25,7 @@ public class AuthController {
         this.ownerRepository = ownerRepository;
     }
 
-    // register
+    // REGISTER
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
 
@@ -63,12 +63,13 @@ public class AuthController {
         return ResponseEntity.ok(dto);
     }
 
-    // login
+    //  LOGIN
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Optional<Owner> opt = ownerRepository.findByEmail(req.getEmail());
 
         if (opt.isEmpty()) {
+            // nu dăm mesaj diferit pentru mail/parolă ca să nu "dezvăluim" ce email există
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
