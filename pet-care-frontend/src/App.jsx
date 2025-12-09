@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Owners from './pages/Owners';
@@ -10,7 +9,7 @@ export default function App() {
   return (
     <Router>
       <div className="app">
-        <ToastContainer />  {/* <- trebuie montat o singură dată în aplicație */}
+        <ToastContainer />  
 
         <header className="header">
           <h1>🐾 Pet Care Management</h1>

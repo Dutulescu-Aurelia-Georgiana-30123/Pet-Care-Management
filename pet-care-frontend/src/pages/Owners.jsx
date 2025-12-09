@@ -10,7 +10,7 @@ export default function Owners() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
 
-  // 👇 ref-uri pentru scroll + focus
+  
   const formRef = useRef(null);
   const firstFieldRef = useRef(null);
 

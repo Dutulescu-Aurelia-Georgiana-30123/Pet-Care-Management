@@ -1,4 +1,3 @@
-// src/pages/Appointments.jsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Api from '../services/appointments.js';
 import OwnersApi from '../services/owners.js';
@@ -35,7 +34,7 @@ export default function Appointments() {
   const formRef = useRef(null);
   const firstFieldRef = useRef(null);
 
-  // ------- helpers -------
+  // helpers
   function normalizePetsWithOwners(petsRaw, ownersList) {
     if (!Array.isArray(petsRaw)) return [];
     const byName = new Map(
@@ -81,9 +80,8 @@ export default function Appointments() {
         setForm((f) => ({ ...f, petId: String(only.id) }));
       }
     }
-  }, [form.ownerId, petsForSelectedOwner]); // eslint-disable-line
+  }, [form.ownerId, petsForSelectedOwner]); 
 
-  // ------- loads -------
   useEffect(() => {
     loadRefs();
     loadAll();
@@ -138,7 +136,7 @@ export default function Appointments() {
     }
   }
 
-  // ------- form -------
+  // form
   function validateForm() {
     const { date, time, description, ownerId, petId } = form;
     if (!date || !time) return 'Complete date & hour.';
@@ -262,7 +260,7 @@ export default function Appointments() {
     }
   }
 
-  // ------- grupare + sortare + interval -------
+  //  grupare, sortare si interval 
   const grouped = useMemo(() => {
     const list = Array.isArray(rows) ? [...rows] : [];
     // sortare cronologică
@@ -300,7 +298,7 @@ export default function Appointments() {
 
   const [showPast, setShowPast] = useState(false);
 
-  // ------- render -------
+  //  render 
   return (
     <section>
       <h2>📅 Appointments</h2>
@@ -549,7 +547,7 @@ export default function Appointments() {
   );
 }
 
-/* --- componentă mică pentru un rând --- */
+/* componentă mică pentru un rând */
 function Row({ a, onEdit, onDelete, loading }) {
   return (
     <div className="appointment-card" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
