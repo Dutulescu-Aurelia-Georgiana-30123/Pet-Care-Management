@@ -9,8 +9,8 @@ function createWindow() {
     },
   });
 
-  // DOAR DEV – încarcă aplicația client care rulează pe Vite
-  win.loadURL('http://localhost:5174'); // dacă Vite pornește pe alt port, îl schimbăm
+ 
+  win.loadURL('http://localhost:5174'); // incarcam aplicatia care ruleaza pe Vite
 }
 
 app.whenReady().then(() => {
