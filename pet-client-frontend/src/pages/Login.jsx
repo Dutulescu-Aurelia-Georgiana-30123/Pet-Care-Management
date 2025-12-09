@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Auth from '../services/auth.js';
@@ -7,7 +8,7 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
+  const [err, setError] = useState('');
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -16,7 +17,7 @@ export default function Login({ onLogin }) {
   setError('');
   try {
     const data = await Auth.login(email, password);
-    onLogin(data);                 
+    onLogin(data);                  // ce aveai tu înainte
   } catch (err) {
     const msg =
       err?.response?.data?.error ||

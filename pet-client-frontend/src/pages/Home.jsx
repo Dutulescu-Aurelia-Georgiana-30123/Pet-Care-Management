@@ -158,7 +158,7 @@ export default function Home({ owner }) {
               color: '#111827',
             }}
           >
-            Veterinary Assistant (AI)
+         
           </h3>
           <p
             style={{
@@ -167,9 +167,7 @@ export default function Home({ owner }) {
               color: '#6b7280',
             }}
           >
-            Write down your pet's symptoms and the Ai will provide you 
-            with a possible explanation and general recommendations. 
-            It doesn't replace a veterinary consultation!!
+      
           </p>
 
           {/* componenta ta de AI */}
